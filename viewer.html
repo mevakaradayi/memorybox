@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>My Memory Box – Viewer</title>
+  <title>Memory Box – Viewer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Griffy&display=swap" rel="stylesheet">
 
@@ -217,8 +217,7 @@
       class="memory-box-image"
       id="memoryBoxImage"
     >
-    <!-- You can customize this title per person -->
-    <div class="memory-title">My Memory Box</div>
+    <div class="memory-title" id="boxTitle">Memory Box</div>
     <div class="memory-subtitle" id="clickText">Click to Open</div>
   </div>
 
@@ -254,6 +253,15 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+      // Get box owner from URL parameter (e.g., ?owner=Sarah)
+      const urlParams = new URLSearchParams(window.location.search);
+      const boxOwner = urlParams.get('owner') || 'Someone';
+      
+      // Update page title and box title to show owner's name
+      const boxTitle = document.getElementById("boxTitle");
+      boxTitle.textContent = `${boxOwner}'s Memory Box`;
+      document.title = `${boxOwner}'s Memory Box`;
+      
       const boxWrapper      = document.getElementById("memoryBox");
       const boxImage        = document.getElementById("memoryBoxImage");
       const clickText       = document.getElementById("clickText");

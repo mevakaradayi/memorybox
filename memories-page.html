@@ -22,7 +22,6 @@
       width: 100vw;
       height: 100vh;
       overflow: hidden;
-      perspective: 1200px; /* for lid 3D feel */
     }
 
     .memory-box-image {
@@ -35,31 +34,7 @@
       filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.9));
       pointer-events: none;
       z-index: 5;
-      transition: opacity 0.35s ease, transform 0.5s ease;
-      transform-origin: center bottom;
-      backface-visibility: hidden;
-    }
-
-    /* closed box (base) */
-    .box-closed {
-      opacity: 1;
-    }
-
-    /* open box (lid up) – start hidden & slightly tilted */
-    .box-open {
-      opacity: 0;
-      transform: translate(-50%, -50%) rotateX(-75deg) translateY(20px);
-    }
-
-    /* when scene is open, swap states with animation */
-    .scene.open .box-closed {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.97);
-    }
-
-    .scene.open .box-open {
-      opacity: 1;
-      transform: translate(-50%, -50%) rotateX(0deg) translateY(0);
+      transition: opacity 0.25s ease;
     }
 
     .photo-layer {
@@ -81,13 +56,21 @@
       background: #fdf6e3;
       border-radius: 10px;
       box-shadow: 0 14px 26px rgba(0, 0, 0, 0.7);
-      padding: 8px 8px 14px;
+      padding: 4px;
       pointer-events: auto;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+      opacity: 0;
+      transform: scale(0.3) rotate(0deg);
+      transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, left 0.6s ease, top 0.6s ease;
     }
 
-    .photo-card:hover {
-      transform: scale(1.06);
+    .photo-card.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .photo-card.visible:hover {
+      transform: scale(1.08);
       box-shadow: 0 18px 32px rgba(0, 0, 0, 0.9);
       z-index: 20;
     }
@@ -99,17 +82,170 @@
       border-radius: 7px;
     }
 
-    .photo-caption {
+    .photo-card .caption-preview {
+      font-size: 0.7rem;
+      color: #2b1708;
       text-align: center;
-      margin-top: 6px;
-      font-size: 0.8rem;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0.8;
     }
 
-    .tilt-1 { transform: rotate(-4deg); }
-    .tilt-2 { transform: rotate(3deg); }
-    .tilt-3 { transform: rotate(-2deg); }
-    .tilt-4 { transform: rotate(2deg); }
+    .photo-card .caption-preview.empty {
+      display: none;
+    }
 
+    /* Photo Modal/Lightbox */
+    .photo-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .photo-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: modalZoom 0.3s ease;
+    }
+
+    @keyframes modalZoom {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-content img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-caption-area {
+      margin-top: 16px;
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .modal-caption {
+      font-size: 1.1rem;
+      color: #fdf6e3;
+      margin-bottom: 10px;
+      min-height: 1.5em;
+    }
+
+    .modal-caption.empty {
+      color: rgba(253, 246, 227, 0.5);
+      font-style: italic;
+    }
+
+    .caption-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(253, 246, 227, 0.3);
+      background: rgba(5, 5, 18, 0.8);
+      color: #fdf6e3;
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+      display: none;
+    }
+
+    .caption-input:focus {
+      border-color: #ffcf71;
+    }
+
+    .caption-input.active {
+      display: block;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .modal-btn {
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .modal-btn.edit-btn {
+      background: transparent;
+      border: 1px solid rgba(253, 246, 227, 0.5);
+      color: #fdf6e3;
+    }
+
+    .modal-btn.edit-btn:hover {
+      border-color: #ffcf71;
+      color: #ffcf71;
+    }
+
+    .modal-btn.save-btn {
+      background: linear-gradient(135deg, #ffcf71, #ff9f7b);
+      border: none;
+      color: #2b1708;
+      display: none;
+    }
+
+    .modal-btn.save-btn.active {
+      display: inline-block;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: none;
+      border: none;
+      color: #fdf6e3;
+      font-size: 2rem;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .close-modal:hover {
+      opacity: 1;
+    }
+
+    /* tilt - applied when visible */
+    .photo-card.visible.tilt-1 { transform: scale(1) rotate(-4deg); }
+    .photo-card.visible.tilt-2 { transform: scale(1) rotate(3deg); }
+    .photo-card.visible.tilt-3 { transform: scale(1) rotate(-2deg); }
+    .photo-card.visible.tilt-4 { transform: scale(1) rotate(2deg); }
+    
+    .photo-card.visible.tilt-1:hover,
+    .photo-card.visible.tilt-2:hover,
+    .photo-card.visible.tilt-3:hover,
+    .photo-card.visible.tilt-4:hover { 
+      transform: scale(1.08) rotate(0deg); 
+    }
+
+    /* Control bar */
     .control-panel {
       position: absolute;
       left: 50%;
@@ -120,20 +256,17 @@
       background: rgba(5,5,18,0.85);
       border: 1px solid rgba(253,246,227,0.1);
       display: flex;
+      align-items: center;
       gap: 14px;
       flex-wrap: wrap;
       justify-content: center;
       z-index: 20;
       backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      max-width: 95vw;
     }
 
     #photo-input { display: none; }
 
-    .upload-button,
-    .open-button,
-    .close-button {
+    .upload-button, .open-button, .close-button {
       padding: 8px 16px;
       border-radius: 999px;
       font-family: inherit;
@@ -148,8 +281,7 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.7);
     }
 
-    .open-button,
-    .close-button {
+    .open-button, .close-button {
       background: transparent;
       border: 1px solid rgba(253,246,227,0.7);
       color: #fdf6e3;
@@ -161,51 +293,14 @@
     }
 
     .clear-button {
-      background: transparent;
-      border: none;
-      color: #fdf6e3;
-      font-size: 0.8rem;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-
-    .top-bar {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      right: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 25;
-    }
-
-    .user-greeting {
-      font-size: 1rem;
-      opacity: 0.9;
-    }
-
-    .logout-button {
-      padding: 6px 14px;
+      padding: 8px 16px;
       border-radius: 999px;
       font-family: inherit;
-      font-size: 0.85rem;
       cursor: pointer;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(253, 246, 227, 0.3);
-      color: #fdf6e3;
-      transition: background 0.2s ease, border-color 0.2s ease;
-    }
-
-    .logout-button:hover {
-      background: rgba(255, 100, 100, 0.15);
-      border-color: rgba(255, 150, 150, 0.5);
-    }
-
-    #photo-count {
-      font-size: 0.82rem;
-      opacity: 0.9;
       white-space: nowrap;
+      background: transparent;
+      border: 1px solid rgba(253,246,227,0.7);
+      color: #fdf6e3;
     }
 
     .empty-state-bubble {
@@ -222,47 +317,27 @@
       text-align: center;
     }
 
-    .hidden { display: none; }
-
-    @media (max-width: 768px) {
-      .memory-box-image {
-        max-width: 210px;
-        width: 60vw;
-      }
-
-      .photo-card {
-        width: 38vw;
-        max-width: 150px;
-      }
-
-      .photo-card img {
-        height: 28vw;
-        max-height: 130px;
-      }
+    .greeting {
+      position: absolute;
+      top: 20px;
+      left: 24px;
+      font-size: 1.3rem;
+      color: #fdf6e3;
+      z-index: 10;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     }
+
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <div id="scene" class="scene">
+  <div class="scene">
 
-    <!-- Top bar with user info and logout -->
-    <div class="top-bar">
-      <span id="user-greeting" class="user-greeting">Hello, Friend ✨</span>
-      <button id="logout-btn" class="logout-button">Sign out</button>
-    </div>
+    <div id="greeting" class="greeting">Hello, Friend ✨</div>
 
-    <!-- Closed box -->
-    <img
+    <img id="box-image"
       src="Images/box-close.png"
-      class="memory-box-image box-closed"
-      alt="Memory Box Closed"
-    >
-
-    <!-- Open box (lid up) -->
-    <img
-      src="Images/box-open.png"
-      class="memory-box-image box-open"
-      alt="Memory Box Open"
+      class="memory-box-image"
     >
 
     <div id="empty-state" class="empty-state-bubble">
@@ -271,8 +346,24 @@
 
     <div id="photo-layer" class="photo-layer photos-hidden"></div>
 
+    <!-- Photo Modal -->
+    <div id="photo-modal" class="photo-modal">
+      <div class="modal-content">
+        <button class="close-modal" id="close-modal">&times;</button>
+        <img id="modal-image" src="" alt="Photo">
+        <div class="modal-caption-area">
+          <p id="modal-caption" class="modal-caption empty">Click "Add Caption" to add a memory</p>
+          <input type="text" id="caption-input" class="caption-input" placeholder="Write your caption...">
+          <div class="modal-buttons">
+            <button id="edit-caption-btn" class="modal-btn edit-btn">✏️ Add Caption</button>
+            <button id="save-caption-btn" class="modal-btn save-btn">💾 Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="control-panel">
-      <label for="photo-input" class="upload-button">➕ Add photos</label>
+      <label for="photo-input" class="upload-button" id="upload-label">➕ Add photos</label>
       <input id="photo-input" type="file" accept="image/*" multiple>
 
       <button id="open-box" class="open-button">Open box</button>
@@ -284,48 +375,24 @@
   </div>
 
 <script>
-  // Auth constants & helpers
+  // Get user session and set greeting
   const SESSION_KEY = 'memoryBox_session';
+  const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+  const userName = session?.name || 'Friend';
+  document.getElementById('greeting').textContent = `Hello, ${userName} ✨`;
 
-  function getSession() {
-    try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
-    catch { return null; }
-  }
+  const STORAGE_KEY = "memoryBoxPhotos_v4";
 
-  function logout() {
-    localStorage.removeItem(SESSION_KEY);
-    window.location.href = 'login.html';
-  }
-
-  // Check authentication - redirect if not logged in
-  const currentUser = getSession();
-  if (!currentUser) {
-    window.location.href = 'login.html';
-  }
-
-  // Per-user storage key (photos tied to user's email)
-  const STORAGE_KEY = `memoryBoxPhotos_${currentUser?.email || 'guest'}`;
-
-  const scene           = document.getElementById("scene");
-  const photoLayer      = document.getElementById("photo-layer");
-  const input           = document.getElementById("photo-input");
-  const clearBtn        = document.getElementById("clear-photos");
-  const photoCountLabel = document.getElementById("photo-count");
-  const emptyState      = document.getElementById("empty-state");
-  const openBoxBtn      = document.getElementById("open-box");
-  const closeBoxBtn     = document.getElementById("close-box");
-  const userGreeting    = document.getElementById("user-greeting");
-  const logoutBtn       = document.getElementById("logout-btn");
+  const boxImage       = document.getElementById("box-image");
+  const photoLayer     = document.getElementById("photo-layer");
+  const input          = document.getElementById("photo-input");
+  const clearBtn       = document.getElementById("clear-photos");
+  const photoCountLabel= document.getElementById("photo-count");
+  const emptyState     = document.getElementById("empty-state");
+  const openBoxBtn     = document.getElementById("open-box");
+  const closeBoxBtn    = document.getElementById("close-box");
 
   let isBoxOpen = false;
-
-  // Set user greeting
-  if (currentUser) {
-    userGreeting.textContent = `Hello, ${currentUser.name} ✨`;
-  }
-
-  // Logout handler
-  logoutBtn.addEventListener("click", logout);
 
   function loadStored() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
@@ -344,18 +411,46 @@
       ? `${count} photo${count > 1 ? "s" : ""}`
       : "No photos yet.";
 
-    // open / close class on scene (controls lid animation)
-    scene.classList.toggle("open", isBoxOpen);
+    // box image
+    boxImage.src = isBoxOpen
+      ? "Images/box-open.png"
+      : "Images/box-close.png";
 
     // reveal photos only if open
     photoLayer.classList.toggle("photos-hidden", !isBoxOpen);
+    
+    // Animate photos when opening/closing
+    const cards = [...photoLayer.children];
+    if (isBoxOpen) {
+      // Animate cards flying out from center with staggered delay
+      cards.forEach((card, index) => {
+        const angle = +card.dataset.angle;
+        const radius = +card.dataset.radius;
+        setTimeout(() => {
+          placeCard(card, angle, radius, true);
+        }, index * 80); // Stagger each card by 80ms
+      });
+    } else {
+      // Reset cards to center and hide
+      cards.forEach(card => {
+        card.classList.remove('visible');
+      });
+    }
 
-    // empty state text
+    // empty state bubble logic
     if (count === 0) {
-      emptyState.textContent = "Your box is empty… add your first memory 💌";
+      if (isOwnBox) {
+        emptyState.textContent = "Your box is empty… add your first memory 💌";
+      } else {
+        emptyState.textContent = `${displayOwnerName}'s box is empty 📦`;
+      }
       emptyState.classList.remove("hidden");
     } else if (!isBoxOpen) {
-      emptyState.textContent = "You have memories inside… open your box ✨";
+      if (isOwnBox) {
+        emptyState.textContent = "You have memories inside… open your box ✨";
+      } else {
+        emptyState.textContent = `${displayOwnerName} has memories inside… open the box ✨`;
+      }
       emptyState.classList.remove("hidden");
     } else {
       emptyState.classList.add("hidden");
@@ -366,34 +461,87 @@
     closeBoxBtn.classList.toggle("disabled", !isBoxOpen);
   }
 
-  function placeCard(card, angle, radius) {
+  function placeCard(card, angle, radius, animate = false) {
     const rect = photoLayer.getBoundingClientRect();
     const cx = rect.width / 2;
     const cy = rect.height / 2;
-
+    
+    const cardWidth = 150;
+    const cardHeight = 155; // 130px image + 4px padding top + 4px padding bottom + caption area
+    const padding = 20;
+    const boxSize = 180; // Size of the box area to avoid
+    
+    // Calculate position
     const rad = angle * (Math.PI / 180);
-    const x = cx + radius * Math.cos(rad);
-    const y = cy + radius * Math.sin(rad);
-
-    card.style.left = `${x}px`;
-    card.style.top = `${y}px`;
+    let x = cx + radius * Math.cos(rad);
+    let y = cy + radius * Math.sin(rad);
+    
+    // Clamp to keep cards within viewport
+    x = Math.max(padding, Math.min(x, rect.width - cardWidth - padding));
+    y = Math.max(padding + 60, Math.min(y, rect.height - cardHeight - padding - 80));
+    
+    // Avoid the center box area - push cards outward if too close
+    const cardCenterX = x + cardWidth / 2;
+    const cardCenterY = y + cardHeight / 2;
+    const distFromCenter = Math.sqrt(Math.pow(cardCenterX - cx, 2) + Math.pow(cardCenterY - cy, 2));
+    
+    if (distFromCenter < boxSize) {
+      // Push card outward from center
+      const pushAngle = Math.atan2(cardCenterY - cy, cardCenterX - cx);
+      const pushDistance = boxSize + 20;
+      x = cx + pushDistance * Math.cos(pushAngle) - cardWidth / 2;
+      y = cy + pushDistance * Math.sin(pushAngle) - cardHeight / 2;
+      
+      // Re-clamp after pushing
+      x = Math.max(padding, Math.min(x, rect.width - cardWidth - padding));
+      y = Math.max(padding + 60, Math.min(y, rect.height - cardHeight - padding - 80));
+    }
+    
+    if (animate) {
+      // Start from center (box position)
+      card.style.left = `${cx - cardWidth/2}px`;
+      card.style.top = `${cy - cardHeight/2}px`;
+      
+      // Animate to final position after a brief delay
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          card.style.left = `${x}px`;
+          card.style.top = `${y}px`;
+          card.classList.add('visible');
+        }, 50);
+      });
+    } else {
+      card.style.left = `${x}px`;
+      card.style.top = `${y}px`;
+    }
   }
 
   function createCard(item, index) {
-    const { dataUrl, name, angle, radius } = item;
+    const { dataUrl, angle, radius, caption } = item;
 
     const card = document.createElement("div");
     card.className = `photo-card tilt-${(index % 4) + 1}`;
     card.dataset.angle = angle;
     card.dataset.radius = radius;
+    card.dataset.index = index;
 
+    const captionClass = caption ? 'caption-preview' : 'caption-preview empty';
     card.innerHTML = `
-      <img src="${dataUrl}" alt="${name}">
-      <div class="photo-caption">${name}</div>
+      <img src="${dataUrl}">
+      <div class="${captionClass}">${caption || ''}</div>
     `;
+    
+    // Click to open modal
+    card.addEventListener('click', () => openPhotoModal(index));
 
     photoLayer.appendChild(card);
-    placeCard(card, angle, radius);
+    
+    // Position at center initially (will animate out when box opens)
+    const rect = photoLayer.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    card.style.left = `${cx - 75}px`;
+    card.style.top = `${cy - 77}px`; // 155/2 ≈ 77
   }
 
   function addFiles(files) {
@@ -410,7 +558,7 @@
 
         const item = {
           dataUrl: e.target.result,
-          name: file.name || "Untitled memory",
+          name: file.name,
           angle,
           radius,
         };
@@ -430,8 +578,6 @@
   });
 
   openBoxBtn.addEventListener("click", () => {
-    const count = photoLayer.children.length;
-    if (count === 0) return; // safety
     isBoxOpen = true;
     updateUI();
   });
@@ -451,16 +597,151 @@
   });
 
   window.addEventListener("resize", () => {
-    [...photoLayer.children].forEach(card => {
-      placeCard(card, +card.dataset.angle, +card.dataset.radius);
-    });
+    if (isBoxOpen) {
+      [...photoLayer.children].forEach(card => {
+        // Reposition without animation on resize
+        placeCard(card, +card.dataset.angle, +card.dataset.radius, false);
+        card.classList.add('visible');
+      });
+    }
   });
 
   window.addEventListener("DOMContentLoaded", () => {
     const stored = loadStored();
-    stored.forEach((item, index) => createCard(item, index));
+    stored.forEach(createCard);
     updateUI();
+    
+    // Hide edit controls when viewing someone else's box
+    if (!isOwnBox) {
+      document.getElementById('upload-label').style.display = 'none';
+      document.getElementById('photo-input').style.display = 'none';
+      document.getElementById('clear-photos').style.display = 'none';
+    }
+  });
+
+  // Modal functionality
+  const photoModal = document.getElementById('photo-modal');
+  const modalImage = document.getElementById('modal-image');
+  const modalCaption = document.getElementById('modal-caption');
+  const captionInput = document.getElementById('caption-input');
+  const editCaptionBtn = document.getElementById('edit-caption-btn');
+  const saveCaptionBtn = document.getElementById('save-caption-btn');
+  const closeModalBtn = document.getElementById('close-modal');
+  
+  let currentPhotoIndex = null;
+
+  function openPhotoModal(index) {
+    const stored = loadStored();
+    const photo = stored[index];
+    if (!photo) return;
+    
+    currentPhotoIndex = index;
+    modalImage.src = photo.dataUrl;
+    
+    // Show caption or placeholder
+    if (photo.caption) {
+      modalCaption.textContent = photo.caption;
+      modalCaption.classList.remove('empty');
+      editCaptionBtn.textContent = '✏️ Edit Caption';
+    } else {
+      if (isOwnBox) {
+        modalCaption.textContent = 'Click "Add Caption" to add a memory';
+      } else {
+        modalCaption.textContent = 'No caption';
+      }
+      modalCaption.classList.add('empty');
+      editCaptionBtn.textContent = '✏️ Add Caption';
+    }
+    
+    // Hide edit controls if viewing someone else's box
+    if (!isOwnBox) {
+      editCaptionBtn.style.display = 'none';
+      captionInput.style.display = 'none';
+      saveCaptionBtn.style.display = 'none';
+    } else {
+      editCaptionBtn.style.display = '';
+    }
+    
+    // Reset edit state
+    captionInput.classList.remove('active');
+    saveCaptionBtn.classList.remove('active');
+    captionInput.value = photo.caption || '';
+    
+    photoModal.classList.add('active');
+  }
+
+  function closePhotoModal() {
+    photoModal.classList.remove('active');
+    currentPhotoIndex = null;
+  }
+
+  function startEditCaption() {
+    const stored = loadStored();
+    const photo = stored[currentPhotoIndex];
+    captionInput.value = photo?.caption || '';
+    captionInput.classList.add('active');
+    saveCaptionBtn.classList.add('active');
+    captionInput.focus();
+  }
+
+  function saveCaption() {
+    if (currentPhotoIndex === null) return;
+    
+    const stored = loadStored();
+    const newCaption = captionInput.value.trim();
+    stored[currentPhotoIndex].caption = newCaption;
+    saveStored(stored);
+    
+    // Update modal display
+    if (newCaption) {
+      modalCaption.textContent = newCaption;
+      modalCaption.classList.remove('empty');
+      editCaptionBtn.textContent = '✏️ Edit Caption';
+    } else {
+      modalCaption.textContent = 'Click "Add Caption" to add a memory';
+      modalCaption.classList.add('empty');
+      editCaptionBtn.textContent = '✏️ Add Caption';
+    }
+    
+    // Update caption preview on the card
+    const card = photoLayer.querySelector(`[data-index="${currentPhotoIndex}"]`);
+    if (card) {
+      const preview = card.querySelector('.caption-preview');
+      if (preview) {
+        preview.textContent = newCaption;
+        preview.classList.toggle('empty', !newCaption);
+      }
+    }
+    
+    // Hide input
+    captionInput.classList.remove('active');
+    saveCaptionBtn.classList.remove('active');
+  }
+
+  // Modal event listeners
+  closeModalBtn.addEventListener('click', closePhotoModal);
+  editCaptionBtn.addEventListener('click', startEditCaption);
+  saveCaptionBtn.addEventListener('click', saveCaption);
+  
+  // Close modal on background click
+  photoModal.addEventListener('click', (e) => {
+    if (e.target === photoModal) closePhotoModal();
+  });
+  
+  // Close modal on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && photoModal.classList.contains('active')) {
+      closePhotoModal();
+    }
+  });
+  
+  // Save caption on Enter key
+  captionInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      saveCaption();
+    }
   });
 </script>
+
 </body>
 </html>
