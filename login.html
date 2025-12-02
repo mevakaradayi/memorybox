@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Memory Box – Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Griffy&display=swap" rel="stylesheet" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #1a1630 0%, #05050a 60%, #020208 100%);
+      font-family: 'Griffy', cursive;
+      color: #fdf6e3;
+    }
+
+    .auth-wrapper {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+
+    .app-title {
+      text-align: center;
+      font-size: 2.1rem;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.95rem;
+      opacity: 0.8;
+      margin-bottom: 18px;
+    }
+
+    .auth-card {
+      background: rgba(15, 14, 40, 0.9);
+      border-radius: 20px;
+      padding: 22px 20px 24px;
+      box-shadow: 0 18px 35px rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(6px);
+    }
+
+    .tab-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      border: none;
+      padding: 10px 0;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.06);
+      color: #fdf6e3;
+      transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #ffcf71, #ff9f9f);
+      color: #20122e;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .tab-btn:focus-visible {
+      outline: 2px solid #ffcf71;
+      outline-offset: 2px;
+    }
+
+    .form {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .form.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .field-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      opacity: 0.9;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(5, 5, 20, 0.85);
+      color: #fdf6e3;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    input::placeholder {
+      color: rgba(248, 243, 225, 0.5);
+    }
+
+    input:focus {
+      border-color: #ffcf71;
+      box-shadow: 0 0 0 1px rgba(255, 207, 113, 0.4);
+      background: rgba(7, 7, 25, 0.9);
+    }
+
+    .remember-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin: 4px 0 10px;
+      gap: 8px;
+    }
+
+    .remember-left {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .remember-left input[type="checkbox"] {
+      accent-color: #ffcf71;
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+
+    .link {
+      color: #ffcf71;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+
+    .submit-btn {
+      width: 100%;
+      border: none;
+      padding: 10px 0;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 1rem;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ffcf71, #ff9f9f);
+      color: #20122e;
+      font-weight: 600;
+      margin-top: 4px;
+      margin-bottom: 6px;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.5);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s ease;
+    }
+
+    .submit-btn:hover {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+    }
+
+    .hint {
+      text-align: center;
+      font-size: 0.76rem;
+      opacity: 0.8;
+      margin-top: 6px;
+      line-height: 1.3;
+    }
+
+    .hint code {
+      font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 0.7rem;
+      padding: 2px 4px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    @media (max-width: 480px) {
+      .auth-card {
+        padding: 18px 16px 20px;
+      }
+      .app-title {
+        font-size: 1.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-wrapper">
+    <h1 class="app-title">Memory Box</h1>
+    <p class="subtitle">Sign in to open your box ✨</p>
+
+    <div class="auth-card">
+      <div class="tab-row">
+        <button class="tab-btn active" data-target="login-form">Sign In</button>
+        <button class="tab-btn" data-target="signup-form">Sign Up</button>
+      </div>
+
+      <!-- Sign In -->
+      <form id="login-form" class="form active" onsubmit="handleAuth(event, 'login')">
+        <div class="field-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="email" placeholder="you@example.com" required />
+        </div>
+
+        <div class="field-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" placeholder="••••••••" required />
+        </div>
+
+        <div class="remember-row">
+          <label class="remember-left">
+            <input type="checkbox" name="remember" />
+            <span>Remember me</span>
+          </label>
+          <a class="link" href="#">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="submit-btn">Open my box</button>
+
+        <p class="hint">
+          New here?
+          <span class="link" onclick="switchTab('signup-form')">Create an account</span>.
+        </p>
+      </form>
+
+      <!-- Sign Up -->
+      <form id="signup-form" class="form" onsubmit="handleAuth(event, 'signup')">
+        <div class="field-group">
+          <label for="signup-name">Name</label>
+          <input type="text" id="signup-name" name="name" placeholder="Your name" required />
+        </div>
+
+        <div class="field-group">
+          <label for="signup-email">Email</label>
+          <input type="email" id="signup-email" name="email" placeholder="you@example.com" required />
+        </div>
+
+        <div class="field-group">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" name="password" placeholder="At least 8 characters" required />
+        </div>
+
+        <button type="submit" class="submit-btn">Create my box</button>
+
+        <p class="hint">
+          Already have an account?
+          <span class="link" onclick="switchTab('login-form')">Sign in instead</span>.
+        </p>
+      </form>
+
+      <div class="hint">
+        After signing in, you'll go to your box page.<br />
+        You can always come back here.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Switch tabs (Sign In / Sign Up)
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const forms = document.querySelectorAll('.form');
+
+    function switchTab(targetId) {
+      forms.forEach(form => {
+        form.classList.toggle('active', form.id === targetId);
+      });
+
+      tabButtons.forEach(btn => {
+        const target = btn.getAttribute('data-target');
+        btn.classList.toggle('active', target === targetId);
+      });
+    }
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        switchTab(targetId);
+      });
+    });
+
+    // Simple localStorage-based auth (for demo purposes)
+    const USERS_KEY = 'memoryBox_users';
+    const SESSION_KEY = 'memoryBox_session';
+
+    function getUsers() {
+      try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; }
+      catch { return {}; }
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+
+    function setSession(user) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    }
+
+    function handleAuth(event, type) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+      const email = formData.get('email').toLowerCase().trim();
+      const password = formData.get('password');
+
+      const users = getUsers();
+
+      if (type === 'signup') {
+        const name = formData.get('name')?.trim() || 'Friend';
+
+        // Check if user already exists
+        if (users[email]) {
+          alert('An account with this email already exists. Please sign in.');
+          switchTab('login-form');
+          return;
+        }
+
+        // Create new user
+        users[email] = { name, password, createdAt: Date.now() };
+        saveUsers(users);
+
+        // Set session and redirect
+        setSession({ email, name });
+        window.location.href = 'memories-page.html';
+
+      } else {
+        // Login
+        const user = users[email];
+
+        if (!user) {
+          alert('No account found with this email. Please sign up first.');
+          switchTab('signup-form');
+          return;
+        }
+
+        if (user.password !== password) {
+          alert('Incorrect password. Please try again.');
+          return;
+        }
+
+        // Set session and redirect
+        setSession({ email, name: user.name });
+        window.location.href = 'memories-page.html';
+      }
+    }
+
+    // Check if already logged in, redirect to memories page
+    (function checkExistingSession() {
+      const session = localStorage.getItem(SESSION_KEY);
+      if (session) {
+        window.location.href = 'memories-page.html';
+      }
+    })();
+  </script>
+</body>
+</html>

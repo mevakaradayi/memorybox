@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Memory Box – Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Griffy&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #1a1630 0%, #05050a 60%, #020208 100%);
+      font-family: 'Griffy', cursive;
+      color: #fdf6e3;
+      overflow: hidden;
+    }
+
+    .memory-box-wrapper {
+      position: relative;
+      text-align: center;
+      cursor: pointer;
+      padding: 0 60px;
+      border-radius: 24px;
+      z-index: 10;
+      transition: transform 0.3s ease;
+    }
+
+    .memory-box-wrapper::before {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      background: radial-gradient(circle,
+        rgba(255, 215, 160, 0.9) 0%,
+        rgba(255, 215, 160, 0) 55%);
+      opacity: 0;
+      filter: blur(28px);
+      transform: scale(0.8);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: -1;
+    }
+
+    .memory-box-wrapper:hover::before,
+    .memory-box-wrapper.open::before {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .memory-box-image {
+      width: 400px;
+      max-width: 70vw;
+      display: block;
+      margin: 0 auto 10px;
+      transition: transform 0.25s ease;
+    }
+
+    .memory-box-wrapper:hover .memory-box-image {
+      transform: scale(1.05);
+    }
+
+    .memory-title {
+      font-size: 24px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .memory-subtitle {
+      font-size: 14px;
+      opacity: 0.8;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .memory-subtitle.hidden {
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+    }
+
+    /* layer where photos live */
+    .memory-photos {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;   /* container never blocks anything */
+      z-index: 5;
+    }
+
+    .memory-photo {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0.2);
+    }
+
+    /* when box is open, show photos & allow clicks */
+    .memory-photos.active .memory-photo {
+      pointer-events: auto;
+    }
+
+    @media (min-width: 900px) {
+      .memory-photo { width: 160px; }
+    }
+
+    /* Close box button */
+    #closeButton {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 8px;
+      color: #fff;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      transition: background 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    #closeButton.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #closeButton:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.05);
+    }
+
+    /* modal backdrop */
+    .photo-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .photo-modal-backdrop.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* modal card */
+    .photo-modal {
+      background: rgba(0, 0, 0, 0.92);
+      border-radius: 24px;
+      padding: 22px 24px 18px;
+      max-width: min(80vw, 600px);
+      max-height: 80vh;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .photo-modal-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      max-height: 60vh;
+      overflow-y: auto;
+      margin-top: 4px;
+      padding-right: 4px;
+    }
+
+    .photo-modal-images img {
+      max-width: min(48%, 260px);
+      max-height: 40vh;
+      border-radius: 16px;
+      display: block;
+    }
+
+    .photo-modal-close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      border: none;
+      background: transparent;
+      color: #fdf6e3;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    #photoModalCaption {
+      margin-top: 10px;
+      font-size: 14px;
+      opacity: 0.9;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BOX + TITLE -->
+  <div class="memory-box-wrapper" id="memoryBox">
+    <img
+      src="Images/box-close.png"
+      alt="Closed Memory Box"
+      class="memory-box-image"
+      id="memoryBoxImage"
+    >
+    <!-- You can customize this title per person -->
+    <div class="memory-title">My Memory Box</div>
+    <div class="memory-subtitle" id="clickText">Click to Open</div>
+  </div>
+
+  <!-- FLOATING PHOTOS (for this box/person) -->
+  <div class="memory-photos" id="memoryPhotos">
+    <!-- Change this list to show someone’s memories -->
+    <img src="Images/Abigail.jpg"        alt="Abigail"              class="memory-photo" data-group="Abigail">
+    <img src="Images/AbigailArka.jpg"    alt="Abigail (back)"       class="memory-photo" data-group="Abigail">
+
+    <img src="Images/ArzuNisan.jpg"      alt="Arzu’s engagement"    class="memory-photo">
+    <img src="Images/Bagel.jpg"          alt="First NYC bagel"      class="memory-photo">
+    <img src="Images/DC.jpg"             alt="DC trip"              class="memory-photo">
+    <img src="Images/GLLSRetreat.jpg"    alt="GLLS retreat"         class="memory-photo">
+
+    <img src="Images/Jeong.jpg"          alt="Jeong"                class="memory-photo" data-group="Jeong">
+    <img src="Images/Jeong2.jpg"         alt="Jeong (back)"         class="memory-photo" data-group="Jeong">
+
+    <!-- etc… keep adding / grouping as you like -->
+  </div>
+
+  <!-- Close Box Button -->
+  <button id="closeButton">✕ Close Box</button>
+
+  <!-- Modal for clicked photos -->
+  <div id="photoModal" class="photo-modal-backdrop">
+    <div class="photo-modal">
+      <button id="photoModalClose" class="photo-modal-close">✕</button>
+
+      <div id="photoModalImages" class="photo-modal-images"></div>
+      <p id="photoModalCaption"></p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const boxWrapper      = document.getElementById("memoryBox");
+      const boxImage        = document.getElementById("memoryBoxImage");
+      const clickText       = document.getElementById("clickText");
+      const photosContainer = document.getElementById("memoryPhotos");
+      const photos          = Array.from(document.querySelectorAll(".memory-photo"));
+      const closeBtn        = document.getElementById("closeButton");
+
+      const modal           = document.getElementById("photoModal");
+      const modalImages     = document.getElementById("photoModalImages");
+      const modalCap        = document.getElementById("photoModalCaption");
+      const modalClose      = document.getElementById("photoModalClose");
+
+      // group photos by data-group
+      const groups = {};
+      const photoUnits = [];  // each unit = { photos: [img, ...] }
+
+      photos.forEach((photo) => {
+        const groupId = photo.dataset.group;
+        if (groupId) {
+          if (!groups[groupId]) groups[groupId] = [];
+          groups[groupId].push(photo);
+        } else {
+          photoUnits.push({ photos: [photo] });
+        }
+      });
+
+      Object.values(groups).forEach((arr) => {
+        photoUnits.push({ photos: arr });
+      });
+
+      let isOpen = false;
+
+      // ---- MODAL LOGIC ----
+      function openPhotoModal(set) {
+        modalImages.innerHTML = "";
+        const captions = [];
+
+        set.forEach((p) => {
+          const img = document.createElement("img");
+          img.src = p.src;
+          img.alt = p.alt || "";
+          if (img.alt) captions.push(img.alt);
+          modalImages.appendChild(img);
+        });
+
+        modalCap.textContent = captions.join(" · ");
+        modal.classList.add("visible");
+      }
+
+      function closePhotoModal() {
+        modal.classList.remove("visible");
+      }
+
+      photos.forEach((photo) => {
+        photo.addEventListener("click", () => {
+          if (!isOpen) return;
+          const groupId = photo.dataset.group;
+          if (groupId && groups[groupId]) {
+            openPhotoModal(groups[groupId]);
+          } else {
+            openPhotoModal([photo]);
+          }
+        });
+      });
+
+      modalClose.addEventListener("click", closePhotoModal);
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) closePhotoModal();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closePhotoModal();
+      });
+
+      // ---- BOX OPEN / CLOSE ----
+      boxWrapper.addEventListener("click", () => {
+        if (isOpen) return;
+        isOpen = true;
+
+        boxWrapper.classList.add("open");
+        boxImage.src = "Images/box-open.png";
+        clickText.classList.add("hidden");
+
+        closeBtn.classList.add("visible");
+        photosContainer.classList.add("active");
+
+        scatterPhotos();
+      });
+
+      closeBtn.addEventListener("click", () => {
+        closeBtn.classList.remove("visible");
+
+        photos.forEach((photo) => {
+          photo.style.transition = "opacity 0.4s ease";
+          photo.style.opacity = 0;
+        });
+
+        setTimeout(() => {
+          isOpen = false;
+          boxWrapper.classList.remove("open");
+          boxImage.src = "Images/box-close.png";
+          clickText.classList.remove("hidden");
+          photosContainer.classList.remove("active");
+        }, 500);
+      });
+
+      // ---- SCATTER PHOTOS AROUND BOX ----
+      function scatterPhotos() {
+        const rect    = boxWrapper.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        const margin = 80;
+        const minR = Math.max(rect.width, rect.height) * 0.9;
+        const maxR = Math.min(vw, vh) * 0.7;
+
+        photoUnits.forEach((unit, unitIndex) => {
+          const baseT = unitIndex / photoUnits.length;
+          const jitter = (Math.random() - 0.5) * (1 / photoUnits.length);
+          const t = baseT + jitter;
+          const angle = t * Math.PI * 2;
+
+          const radius = randomBetween(minR, maxR);
+
+          let targetX = centerX + radius * Math.cos(angle);
+          let targetY = centerY + radius * Math.sin(angle);
+
+          targetX = Math.min(vw - margin, Math.max(margin, targetX));
+          targetY = Math.min(vh - margin, Math.max(margin, targetY));
+
+          const baseRotation = randomBetween(-25, 25);
+          const delay = unitIndex * 90;
+          const spread = 30;
+
+          unit.photos.forEach((photo, idx) => {
+            const offsetAngle = (idx - (unit.photos.length - 1) / 2) * 0.25;
+            const offsetX = Math.cos(offsetAngle) * spread * idx;
+            const offsetY = Math.sin(offsetAngle) * spread * idx;
+
+            // start at box center
+            photo.style.left = centerX + "px";
+            photo.style.top  = centerY + "px";
+            photo.style.transition = "none";
+            photo.style.opacity = 0;
+            photo.style.transform = "translate(-50%, -50%) scale(0.2)";
+
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                photo.style.transition =
+                  `left 0.9s ease-out ${delay}ms, ` +
+                  `top 0.9s ease-out ${delay}ms, ` +
+                  `transform 0.9s ease-out ${delay}ms, ` +
+                  `opacity 0.9s ease-out ${delay}ms`;
+
+                photo.style.left = (targetX + offsetX) + "px";
+                photo.style.top  = (targetY + offsetY) + "px";
+                photo.style.opacity = 1;
+                photo.style.transform =
+                  `translate(-50%, -50%) scale(1) rotate(${baseRotation}deg)`;
+              });
+            });
+          });
+        });
+      }
+
+      function randomBetween(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+    });
+  </script>
+</body>
+</html>

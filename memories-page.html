@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Memory Box</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Griffy&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: 'Griffy', cursive;
+      background: radial-gradient(circle at top, #1a1630 0%, #05050a 60%, #020208 100%);
+      color: #fdf6e3;
+      overflow: hidden;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      perspective: 1200px; /* for lid 3D feel */
+    }
+
+    .memory-box-image {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 260px;
+      width: 40vw;
+      filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.9));
+      pointer-events: none;
+      z-index: 5;
+      transition: opacity 0.35s ease, transform 0.5s ease;
+      transform-origin: center bottom;
+      backface-visibility: hidden;
+    }
+
+    /* closed box (base) */
+    .box-closed {
+      opacity: 1;
+    }
+
+    /* open box (lid up) – start hidden & slightly tilted */
+    .box-open {
+      opacity: 0;
+      transform: translate(-50%, -50%) rotateX(-75deg) translateY(20px);
+    }
+
+    /* when scene is open, swap states with animation */
+    .scene.open .box-closed {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.97);
+    }
+
+    .scene.open .box-open {
+      opacity: 1;
+      transform: translate(-50%, -50%) rotateX(0deg) translateY(0);
+    }
+
+    .photo-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .photos-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .photo-card {
+      position: absolute;
+      width: 150px;
+      background: #fdf6e3;
+      border-radius: 10px;
+      box-shadow: 0 14px 26px rgba(0, 0, 0, 0.7);
+      padding: 8px 8px 14px;
+      pointer-events: auto;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .photo-card:hover {
+      transform: scale(1.06);
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.9);
+      z-index: 20;
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 7px;
+    }
+
+    .photo-caption {
+      text-align: center;
+      margin-top: 6px;
+      font-size: 0.8rem;
+    }
+
+    .tilt-1 { transform: rotate(-4deg); }
+    .tilt-2 { transform: rotate(3deg); }
+    .tilt-3 { transform: rotate(-2deg); }
+    .tilt-4 { transform: rotate(2deg); }
+
+    .control-panel {
+      position: absolute;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      border-radius: 999px;
+      background: rgba(5,5,18,0.85);
+      border: 1px solid rgba(253,246,227,0.1);
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      z-index: 20;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      max-width: 95vw;
+    }
+
+    #photo-input { display: none; }
+
+    .upload-button,
+    .open-button,
+    .close-button {
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .upload-button {
+      background: linear-gradient(135deg, #ffcf71, #ff9f7b);
+      border: none;
+      color: #2b1708;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.7);
+    }
+
+    .open-button,
+    .close-button {
+      background: transparent;
+      border: 1px solid rgba(253,246,227,0.7);
+      color: #fdf6e3;
+    }
+
+    .disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .clear-button {
+      background: transparent;
+      border: none;
+      color: #fdf6e3;
+      font-size: 0.8rem;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .top-bar {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 25;
+    }
+
+    .user-greeting {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    .logout-button {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(253, 246, 227, 0.3);
+      color: #fdf6e3;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .logout-button:hover {
+      background: rgba(255, 100, 100, 0.15);
+      border-color: rgba(255, 150, 150, 0.5);
+    }
+
+    #photo-count {
+      font-size: 0.82rem;
+      opacity: 0.9;
+      white-space: nowrap;
+    }
+
+    .empty-state-bubble {
+      position: absolute;
+      top: 18%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px dashed rgba(253,246,227,0.4);
+      background: rgba(5,5,18,0.9);
+      z-index: 6;
+      max-width: 80vw;
+      text-align: center;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 768px) {
+      .memory-box-image {
+        max-width: 210px;
+        width: 60vw;
+      }
+
+      .photo-card {
+        width: 38vw;
+        max-width: 150px;
+      }
+
+      .photo-card img {
+        height: 28vw;
+        max-height: 130px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="scene" class="scene">
+
+    <!-- Top bar with user info and logout -->
+    <div class="top-bar">
+      <span id="user-greeting" class="user-greeting">Hello, Friend ✨</span>
+      <button id="logout-btn" class="logout-button">Sign out</button>
+    </div>
+
+    <!-- Closed box -->
+    <img
+      src="Images/box-close.png"
+      class="memory-box-image box-closed"
+      alt="Memory Box Closed"
+    >
+
+    <!-- Open box (lid up) -->
+    <img
+      src="Images/box-open.png"
+      class="memory-box-image box-open"
+      alt="Memory Box Open"
+    >
+
+    <div id="empty-state" class="empty-state-bubble">
+      Your box is empty… add your first memory 💌
+    </div>
+
+    <div id="photo-layer" class="photo-layer photos-hidden"></div>
+
+    <div class="control-panel">
+      <label for="photo-input" class="upload-button">➕ Add photos</label>
+      <input id="photo-input" type="file" accept="image/*" multiple>
+
+      <button id="open-box" class="open-button">Open box</button>
+      <button id="close-box" class="close-button disabled">Close box</button>
+
+      <span id="photo-count">No photos yet.</span>
+      <button id="clear-photos" class="clear-button">Clear all</button>
+    </div>
+  </div>
+
+<script>
+  // Auth constants & helpers
+  const SESSION_KEY = 'memoryBox_session';
+
+  function getSession() {
+    try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
+    catch { return null; }
+  }
+
+  function logout() {
+    localStorage.removeItem(SESSION_KEY);
+    window.location.href = 'login.html';
+  }
+
+  // Check authentication - redirect if not logged in
+  const currentUser = getSession();
+  if (!currentUser) {
+    window.location.href = 'login.html';
+  }
+
+  // Per-user storage key (photos tied to user's email)
+  const STORAGE_KEY = `memoryBoxPhotos_${currentUser?.email || 'guest'}`;
+
+  const scene           = document.getElementById("scene");
+  const photoLayer      = document.getElementById("photo-layer");
+  const input           = document.getElementById("photo-input");
+  const clearBtn        = document.getElementById("clear-photos");
+  const photoCountLabel = document.getElementById("photo-count");
+  const emptyState      = document.getElementById("empty-state");
+  const openBoxBtn      = document.getElementById("open-box");
+  const closeBoxBtn     = document.getElementById("close-box");
+  const userGreeting    = document.getElementById("user-greeting");
+  const logoutBtn       = document.getElementById("logout-btn");
+
+  let isBoxOpen = false;
+
+  // Set user greeting
+  if (currentUser) {
+    userGreeting.textContent = `Hello, ${currentUser.name} ✨`;
+  }
+
+  // Logout handler
+  logoutBtn.addEventListener("click", logout);
+
+  function loadStored() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function saveStored(list) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }
+
+  function updateUI() {
+    const count = photoLayer.children.length;
+
+    // photo count
+    photoCountLabel.textContent = count
+      ? `${count} photo${count > 1 ? "s" : ""}`
+      : "No photos yet.";
+
+    // open / close class on scene (controls lid animation)
+    scene.classList.toggle("open", isBoxOpen);
+
+    // reveal photos only if open
+    photoLayer.classList.toggle("photos-hidden", !isBoxOpen);
+
+    // empty state text
+    if (count === 0) {
+      emptyState.textContent = "Your box is empty… add your first memory 💌";
+      emptyState.classList.remove("hidden");
+    } else if (!isBoxOpen) {
+      emptyState.textContent = "You have memories inside… open your box ✨";
+      emptyState.classList.remove("hidden");
+    } else {
+      emptyState.classList.add("hidden");
+    }
+
+    // button states
+    openBoxBtn.classList.toggle("disabled", isBoxOpen || count === 0);
+    closeBoxBtn.classList.toggle("disabled", !isBoxOpen);
+  }
+
+  function placeCard(card, angle, radius) {
+    const rect = photoLayer.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+
+    const rad = angle * (Math.PI / 180);
+    const x = cx + radius * Math.cos(rad);
+    const y = cy + radius * Math.sin(rad);
+
+    card.style.left = `${x}px`;
+    card.style.top = `${y}px`;
+  }
+
+  function createCard(item, index) {
+    const { dataUrl, name, angle, radius } = item;
+
+    const card = document.createElement("div");
+    card.className = `photo-card tilt-${(index % 4) + 1}`;
+    card.dataset.angle = angle;
+    card.dataset.radius = radius;
+
+    card.innerHTML = `
+      <img src="${dataUrl}" alt="${name}">
+      <div class="photo-caption">${name}</div>
+    `;
+
+    photoLayer.appendChild(card);
+    placeCard(card, angle, radius);
+  }
+
+  function addFiles(files) {
+    const stored  = loadStored();
+    const updated = [...stored];
+
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith("image/")) return;
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        const angle  = Math.random() * 360;
+        const radius = 160 + Math.random() * 160;
+
+        const item = {
+          dataUrl: e.target.result,
+          name: file.name || "Untitled memory",
+          angle,
+          radius,
+        };
+
+        updated.push(item);
+        createCard(item, updated.length - 1);
+        saveStored(updated);
+        updateUI();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  input.addEventListener("change", e => {
+    addFiles(e.target.files);
+    input.value = "";
+  });
+
+  openBoxBtn.addEventListener("click", () => {
+    const count = photoLayer.children.length;
+    if (count === 0) return; // safety
+    isBoxOpen = true;
+    updateUI();
+  });
+
+  closeBoxBtn.addEventListener("click", () => {
+    isBoxOpen = false;
+    updateUI();
+  });
+
+  clearBtn.addEventListener("click", () => {
+    if (confirm("Clear all photos?")) {
+      localStorage.removeItem(STORAGE_KEY);
+      photoLayer.innerHTML = "";
+      isBoxOpen = false;
+      updateUI();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    [...photoLayer.children].forEach(card => {
+      placeCard(card, +card.dataset.angle, +card.dataset.radius);
+    });
+  });
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const stored = loadStored();
+    stored.forEach((item, index) => createCard(item, index));
+    updateUI();
+  });
+</script>
+</body>
+</html>
