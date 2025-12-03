@@ -4,9 +4,26 @@
   <meta charset="UTF-8" />
   <title>My Memory Box – Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Griffy&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Pinyon+Script&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
 
   <style>
+    :root {
+      --cream: #F5EDE0;
+      --cream-light: #FDF8F3;
+      --burgundy: #722F37;
+      --burgundy-dark: #5A252C;
+      --dusty-pink: #D4A5A5;
+      --dusty-pink-light: #E8C4C4;
+      --gold: #B8860B;
+      --gold-light: #DAA520;
+      --navy: #2C3E50;
+      --soft-blue: #8CBED6;
+      --text-dark: #3D2C29;
+      --text-muted: #6B5B55;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -18,74 +35,154 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at top, #1a1630 0%, #05050a 60%, #020208 100%);
-      font-family: 'Griffy', cursive;
-      color: #fdf6e3;
+      font-family: 'Crimson Pro', Georgia, serif;
+      color: var(--text-dark);
+      background: var(--cream);
+      background-image: 
+        url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23D4A5A5' fill-opacity='0.08'%3E%3Ccircle cx='50' cy='50' r='1'/%3E%3C/g%3E%3C/svg%3E"),
+        linear-gradient(135deg, var(--cream) 0%, var(--cream-light) 50%, #F0E6D8 100%);
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse at top left, rgba(212, 165, 165, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at bottom right, rgba(140, 190, 214, 0.12) 0%, transparent 50%);
+      pointer-events: none;
     }
 
     .auth-wrapper {
       width: 100%;
-      max-width: 420px;
+      max-width: 440px;
       padding: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .decorative-stamp {
+      position: absolute;
+      top: -20px;
+      right: 20px;
+      width: 70px;
+      height: 85px;
+      background: linear-gradient(135deg, var(--dusty-pink) 0%, var(--dusty-pink-light) 100%);
+      border: 3px solid var(--burgundy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 1.8rem;
+      color: var(--burgundy);
+      transform: rotate(8deg);
+      box-shadow: 2px 3px 8px rgba(0,0,0,0.15);
+    }
+
+    .decorative-stamp::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 1px dashed var(--burgundy);
+      opacity: 0.5;
     }
 
     .app-title {
       text-align: center;
-      font-size: 2.1rem;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 3.2rem;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+      color: var(--burgundy);
+      text-shadow: 1px 1px 2px rgba(114, 47, 55, 0.1);
     }
 
     .subtitle {
       text-align: center;
-      font-size: 0.95rem;
-      opacity: 0.8;
-      margin-bottom: 18px;
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      font-style: italic;
+      letter-spacing: 1px;
     }
 
     .auth-card {
-      background: rgba(15, 14, 40, 0.9);
-      border-radius: 20px;
-      padding: 22px 20px 24px;
-      box-shadow: 0 18px 35px rgba(0, 0, 0, 0.65);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(6px);
+      background: var(--cream-light);
+      border-radius: 4px;
+      padding: 32px 28px;
+      box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        0 8px 24px rgba(114, 47, 55, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(114, 47, 55, 0.12);
+      position: relative;
+    }
+
+    .auth-card::before {
+      content: "";
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      border: 1px solid var(--dusty-pink);
+      border-radius: 2px;
+      pointer-events: none;
+      opacity: 0.4;
     }
 
     .tab-row {
       display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: 0;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--dusty-pink-light);
+      position: relative;
+      z-index: 1;
     }
 
     .tab-btn {
       flex: 1;
       border: none;
-      padding: 10px 0;
-      border-radius: 999px;
-      font-family: inherit;
-      font-size: 0.95rem;
+      padding: 12px 0;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.1rem;
+      font-weight: 600;
       cursor: pointer;
-      background: rgba(255, 255, 255, 0.06);
-      color: #fdf6e3;
-      transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.1s ease;
+      background: transparent;
+      color: var(--text-muted);
+      transition: color 0.25s ease;
+      position: relative;
+      letter-spacing: 1px;
+    }
+
+    .tab-btn::after {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 10%;
+      right: 10%;
+      height: 3px;
+      background: var(--burgundy);
+      transform: scaleX(0);
+      transition: transform 0.25s ease;
     }
 
     .tab-btn.active {
-      background: linear-gradient(135deg, #ffcf71, #ff9f9f);
-      color: #20122e;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
-      transform: translateY(-1px);
+      color: var(--burgundy);
     }
 
-    .tab-btn:focus-visible {
-      outline: 2px solid #ffcf71;
-      outline-offset: 2px;
+    .tab-btn.active::after {
+      transform: scaleX(1);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--burgundy-dark);
     }
 
     .form {
       display: none;
-      animation: fadeIn 0.25s ease;
+      animation: fadeIn 0.3s ease;
     }
 
     .form.active {
@@ -93,137 +190,160 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
+      from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     .field-group {
-      margin-bottom: 12px;
+      margin-bottom: 18px;
     }
 
     label {
       display: block;
-      font-size: 0.85rem;
-      margin-bottom: 4px;
-      opacity: 0.9;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-dark);
+      letter-spacing: 0.5px;
     }
 
     input[type="email"],
     input[type="password"],
     input[type="text"] {
       width: 100%;
-      padding: 9px 11px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(5, 5, 20, 0.85);
-      color: #fdf6e3;
-      font-family: inherit;
-      font-size: 0.9rem;
+      padding: 12px 14px;
+      border-radius: 4px;
+      border: 1px solid var(--dusty-pink);
+      background: white;
+      color: var(--text-dark);
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 1rem;
       outline: none;
-      transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     input::placeholder {
-      color: rgba(248, 243, 225, 0.5);
+      color: var(--text-muted);
+      opacity: 0.6;
     }
 
     input:focus {
-      border-color: #ffcf71;
-      box-shadow: 0 0 0 1px rgba(255, 207, 113, 0.4);
-      background: rgba(7, 7, 25, 0.9);
+      border-color: var(--burgundy);
+      box-shadow: 0 0 0 3px rgba(114, 47, 55, 0.1);
     }
 
     .remember-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.8rem;
-      margin: 4px 0 10px;
+      font-size: 0.9rem;
+      margin: 8px 0 18px;
       gap: 8px;
     }
 
     .remember-left {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
+      color: var(--text-muted);
     }
 
     .remember-left input[type="checkbox"] {
-      accent-color: #ffcf71;
-      width: 14px;
-      height: 14px;
+      accent-color: var(--burgundy);
+      width: 15px;
+      height: 15px;
       cursor: pointer;
     }
 
     .link {
-      color: #ffcf71;
+      color: var(--burgundy);
       text-decoration: none;
       cursor: pointer;
+      font-style: italic;
+      transition: color 0.2s ease;
     }
 
     .link:hover {
+      color: var(--gold);
       text-decoration: underline;
     }
 
     .submit-btn {
       width: 100%;
       border: none;
-      padding: 10px 0;
-      border-radius: 999px;
-      font-family: inherit;
-      font-size: 1rem;
-      cursor: pointer;
-      background: linear-gradient(135deg, #ffcf71, #ff9f9f);
-      color: #20122e;
+      padding: 14px 0;
+      border-radius: 4px;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.15rem;
       font-weight: 600;
-      margin-top: 4px;
-      margin-bottom: 6px;
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.5);
-      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s ease;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--burgundy) 0%, var(--burgundy-dark) 100%);
+      color: var(--cream-light);
+      letter-spacing: 1px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(114, 47, 55, 0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .submit-btn::before {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+      pointer-events: none;
     }
 
     .submit-btn:hover {
-      filter: brightness(1.05);
-      transform: translateY(-1px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(114, 47, 55, 0.35);
     }
 
     .submit-btn:active {
       transform: translateY(0);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
     }
 
     .hint {
       text-align: center;
-      font-size: 0.76rem;
-      opacity: 0.8;
-      margin-top: 6px;
-      line-height: 1.3;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 12px;
+      line-height: 1.4;
     }
 
-    .hint code {
-      font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
-      font-size: 0.7rem;
-      padding: 2px 4px;
-      border-radius: 4px;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+    .footer-decoration {
+      text-align: center;
+      margin-top: 24px;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 1.4rem;
+      color: var(--dusty-pink);
+      letter-spacing: 2px;
     }
 
     @media (max-width: 480px) {
       .auth-card {
-        padding: 18px 16px 20px;
+        padding: 24px 20px;
       }
       .app-title {
-        font-size: 1.7rem;
+        font-size: 2.6rem;
+      }
+      .decorative-stamp {
+        width: 55px;
+        height: 68px;
+        font-size: 1.4rem;
       }
     }
   </style>
 </head>
 <body>
   <div class="auth-wrapper">
+    <div class="decorative-stamp">💌</div>
     <h1 class="app-title">Memory Box</h1>
-    <p class="subtitle">Sign in to open your box ✨</p>
+    <p class="subtitle">~ let's write what we can't say ~</p>
 
     <div class="auth-card">
       <div class="tab-row">
@@ -251,11 +371,11 @@
           <a class="link" href="#">Forgot password?</a>
         </div>
 
-        <button type="submit" class="submit-btn">Open my box</button>
+        <button type="submit" class="submit-btn">Open My Box ✨</button>
 
         <p class="hint">
           New here?
-          <span class="link" onclick="switchTab('signup-form')">Create an account</span>.
+          <span class="link" onclick="switchTab('signup-form')">Create an account</span>
         </p>
       </form>
 
@@ -276,19 +396,16 @@
           <input type="password" id="signup-password" name="password" placeholder="At least 8 characters" required />
         </div>
 
-        <button type="submit" class="submit-btn">Create my box</button>
+        <button type="submit" class="submit-btn">Create My Box 💌</button>
 
         <p class="hint">
           Already have an account?
-          <span class="link" onclick="switchTab('login-form')">Sign in instead</span>.
+          <span class="link" onclick="switchTab('login-form')">Sign in instead</span>
         </p>
       </form>
-
-      <div class="hint">
-        After signing in, you'll go to your box page.<br />
-        You can always come back here.
-      </div>
     </div>
+
+    <div class="footer-decoration">~ with love ~</div>
   </div>
 
   <script>

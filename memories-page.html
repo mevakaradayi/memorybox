@@ -4,16 +4,36 @@
   <meta charset="UTF-8">
   <title>My Memory Box</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Griffy&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Pinyon+Script&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      --cream: #F5EDE0;
+      --cream-light: #FDF8F3;
+      --burgundy: #722F37;
+      --burgundy-dark: #5A252C;
+      --dusty-pink: #D4A5A5;
+      --dusty-pink-light: #E8C4C4;
+      --gold: #B8860B;
+      --gold-light: #DAA520;
+      --navy: #2C3E50;
+      --soft-blue: #8CBED6;
+      --text-dark: #3D2C29;
+      --text-muted: #6B5B55;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       min-height: 100vh;
-      font-family: 'Griffy', cursive;
-      background: radial-gradient(circle at top, #1a1630 0%, #05050a 60%, #020208 100%);
-      color: #fdf6e3;
+      font-family: 'Crimson Pro', Georgia, serif;
+      background: var(--cream);
+      background-image: 
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23D4A5A5' stroke-opacity='0.06'%3E%3Cpath d='M30 0v60M0 30h60'/%3E%3C/g%3E%3C/svg%3E"),
+        linear-gradient(180deg, var(--cream-light) 0%, var(--cream) 100%);
+      color: var(--text-dark);
       overflow: hidden;
     }
 
@@ -24,6 +44,19 @@
       overflow: hidden;
     }
 
+    /* Decorative corner flourishes */
+    .scene::before,
+    .scene::after {
+      content: "❦";
+      position: fixed;
+      font-size: 2.5rem;
+      color: var(--dusty-pink);
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    .scene::before { top: 20px; left: 20px; }
+    .scene::after { bottom: 20px; right: 20px; transform: rotate(180deg); }
+
     .memory-box-image {
       position: absolute;
       top: 50%;
@@ -31,7 +64,7 @@
       transform: translate(-50%, -50%);
       max-width: 260px;
       width: 40vw;
-      filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.9));
+      filter: drop-shadow(0 12px 30px rgba(114, 47, 55, 0.25));
       pointer-events: auto;
       cursor: pointer;
       z-index: 5;
@@ -63,15 +96,27 @@
     .photo-card {
       position: absolute;
       width: 140px;
-      background: #fdf6e3;
-      border-radius: 7px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
-      padding: 6px;
+      background: var(--cream-light);
+      border-radius: 4px;
+      box-shadow: 
+        0 4px 12px rgba(114, 47, 55, 0.15),
+        0 1px 3px rgba(0, 0, 0, 0.08);
+      padding: 8px;
       pointer-events: auto;
       cursor: pointer;
       opacity: 0;
       transform: scale(0.3) rotate(0deg);
       transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, left 0.5s ease, top 0.5s ease, z-index 0s;
+      border: 1px solid var(--dusty-pink-light);
+    }
+
+    .photo-card::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(212, 165, 165, 0.3);
+      border-radius: 2px;
+      pointer-events: none;
     }
 
     .photo-card.visible {
@@ -81,7 +126,7 @@
 
     .photo-card.visible:hover {
       transform: scale(1.6);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85);
+      box-shadow: 0 20px 40px rgba(114, 47, 55, 0.3);
       z-index: 100 !important;
     }
 
@@ -89,18 +134,18 @@
       width: 100%;
       height: 100px;
       object-fit: cover;
-      border-radius: 5px;
+      border-radius: 2px;
     }
 
     .photo-card .caption-preview {
-      font-size: 0.6rem;
-      color: #2b1708;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 0.85rem;
+      color: var(--burgundy);
       text-align: center;
-      margin-top: 4px;
+      margin-top: 6px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      opacity: 0.8;
       line-height: 1.2;
     }
 
@@ -112,7 +157,7 @@
     .photo-modal {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(61, 44, 41, 0.85);
       z-index: 100;
       display: flex;
       align-items: flex-start;
@@ -122,6 +167,7 @@
       transition: opacity 0.3s ease, visibility 0.3s ease;
       overflow-y: auto;
       padding: 40px 20px;
+      backdrop-filter: blur(4px);
     }
 
     .photo-modal.active {
@@ -137,6 +183,10 @@
       align-items: center;
       animation: modalZoom 0.3s ease;
       margin: auto;
+      background: var(--cream-light);
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid var(--dusty-pink);
     }
 
     @keyframes modalZoom {
@@ -147,8 +197,8 @@
     .modal-content img {
       max-width: 100%;
       max-height: 70vh;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      border-radius: 4px;
+      box-shadow: 0 8px 24px rgba(114, 47, 55, 0.2);
     }
 
     .modal-images-container {
@@ -163,26 +213,25 @@
     .modal-images-container img {
       max-width: 90vw;
       max-height: 70vh;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      border-radius: 4px;
+      box-shadow: 0 8px 24px rgba(114, 47, 55, 0.2);
       object-fit: contain;
     }
 
     .modal-images-container.single img {
       max-width: 90vw;
-      max-height: 80vh;
+      max-height: 70vh;
     }
 
     .modal-images-container.two-images img {
       max-width: 45vw;
-      max-height: 65vh;
+      max-height: 60vh;
     }
 
-    /* When images stack vertically (narrow screens), allow full width */
     @media (max-width: 900px) {
       .modal-images-container.two-images img {
         max-width: 85vw;
-        max-height: 60vh;
+        max-height: 50vh;
       }
     }
 
@@ -194,7 +243,7 @@
     @media (max-width: 900px) {
       .modal-images-container.many-images img {
         max-width: 80vw;
-        max-height: 50vh;
+        max-height: 45vh;
       }
     }
 
@@ -202,12 +251,14 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: linear-gradient(135deg, #ff6b9d, #c44569);
+      background: linear-gradient(135deg, var(--dusty-pink), var(--burgundy));
       color: white;
-      padding: 4px 12px;
+      padding: 6px 14px;
       border-radius: 999px;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       margin-bottom: 12px;
+      font-family: 'Cormorant Garamond', serif;
+      letter-spacing: 0.5px;
     }
 
     .modal-caption-area {
@@ -218,32 +269,36 @@
     }
 
     .modal-caption {
-      font-size: 1.1rem;
-      color: #fdf6e3;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 1.4rem;
+      color: var(--burgundy);
       margin-bottom: 10px;
       min-height: 1.5em;
     }
 
     .modal-caption.empty {
-      color: rgba(253, 246, 227, 0.5);
+      color: var(--text-muted);
+      font-family: 'Crimson Pro', serif;
       font-style: italic;
+      font-size: 1rem;
     }
 
     .caption-input {
       width: 100%;
-      padding: 10px 14px;
-      border-radius: 20px;
-      border: 1px solid rgba(253, 246, 227, 0.3);
-      background: rgba(5, 5, 18, 0.8);
-      color: #fdf6e3;
-      font-family: inherit;
+      padding: 12px 16px;
+      border-radius: 4px;
+      border: 1px solid var(--dusty-pink);
+      background: white;
+      color: var(--text-dark);
+      font-family: 'Crimson Pro', serif;
       font-size: 1rem;
       outline: none;
       display: none;
     }
 
     .caption-input:focus {
-      border-color: #ffcf71;
+      border-color: var(--burgundy);
+      box-shadow: 0 0 0 3px rgba(114, 47, 55, 0.1);
     }
 
     .caption-input.active {
@@ -257,30 +312,35 @@
     }
 
     .modal-btn {
-      padding: 8px 18px;
-      border-radius: 999px;
-      font-family: inherit;
-      font-size: 0.9rem;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem;
       cursor: pointer;
       transition: all 0.2s ease;
+      letter-spacing: 0.5px;
     }
 
     .modal-btn.edit-btn {
       background: transparent;
-      border: 1px solid rgba(253, 246, 227, 0.5);
-      color: #fdf6e3;
+      border: 1px solid var(--dusty-pink);
+      color: var(--burgundy);
     }
 
     .modal-btn.edit-btn:hover {
-      border-color: #ffcf71;
-      color: #ffcf71;
+      border-color: var(--burgundy);
+      background: rgba(114, 47, 55, 0.05);
     }
 
     .modal-btn.save-btn {
-      background: linear-gradient(135deg, #ffcf71, #ff9f7b);
+      background: var(--burgundy);
       border: none;
-      color: #2b1708;
+      color: var(--cream-light);
       display: none;
+    }
+
+    .modal-btn.save-btn:hover {
+      background: var(--burgundy-dark);
     }
 
     .modal-btn.save-btn.active {
@@ -291,13 +351,13 @@
       position: fixed;
       top: 20px;
       right: 20px;
-      background: rgba(0, 0, 0, 0.5);
-      border: none;
-      color: #fdf6e3;
-      font-size: 2rem;
+      background: var(--cream-light);
+      border: 2px solid var(--burgundy);
+      color: var(--burgundy);
+      font-size: 1.5rem;
       cursor: pointer;
-      opacity: 0.7;
-      transition: opacity 0.2s;
+      opacity: 0.9;
+      transition: all 0.2s;
       width: 44px;
       height: 44px;
       border-radius: 50%;
@@ -309,10 +369,11 @@
 
     .close-modal:hover {
       opacity: 1;
-      background: rgba(0, 0, 0, 0.7);
+      background: var(--burgundy);
+      color: var(--cream-light);
     }
 
-    /* tilt - applied when visible - more variety for loose feel */
+    /* tilt - applied when visible */
     .photo-card.visible.tilt-1 { transform: scale(1) rotate(-8deg); }
     .photo-card.visible.tilt-2 { transform: scale(1) rotate(7deg); }
     .photo-card.visible.tilt-3 { transform: scale(1) rotate(-4deg); }
@@ -335,45 +396,44 @@
     }
 
     .photo-card.selected-for-pair {
-      outline: 3px solid #ff6b9d;
+      outline: 3px solid var(--burgundy);
       outline-offset: 3px;
-      box-shadow: 0 0 20px rgba(255, 107, 157, 0.6), 0 12px 22px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 0 20px rgba(114, 47, 55, 0.4), 0 12px 22px rgba(0, 0, 0, 0.15);
     }
 
     .photo-card.selected-for-pair::after {
-      content: '✓';
+      content: '♥';
       position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #ff6b9d;
+      top: -10px;
+      right: -10px;
+      background: var(--burgundy);
       color: white;
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 12px;
-      font-weight: bold;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-
 
     .pairing-mode-banner {
       position: fixed;
       top: 70px;
       left: 50%;
       transform: translateX(-50%);
-      background: linear-gradient(135deg, #ff6b9d, #c44569);
+      background: linear-gradient(135deg, var(--dusty-pink), var(--burgundy));
       color: white;
-      padding: 10px 24px;
+      padding: 12px 28px;
       border-radius: 999px;
       font-size: 0.95rem;
       z-index: 30;
-      box-shadow: 0 8px 24px rgba(196, 69, 105, 0.5);
+      box-shadow: 0 8px 24px rgba(114, 47, 55, 0.35);
       display: none;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
+      font-family: 'Cormorant Garamond', serif;
     }
 
     .pairing-mode-banner.active {
@@ -382,42 +442,41 @@
 
     .pairing-mode-banner .selection-count {
       background: rgba(255,255,255,0.25);
-      padding: 2px 10px;
+      padding: 4px 12px;
       border-radius: 999px;
       font-weight: bold;
     }
 
     .pair-btn, .unpair-btn {
-      padding: 8px 16px;
-      border-radius: 999px;
-      font-family: inherit;
+      padding: 10px 18px;
+      border-radius: 4px;
+      font-family: 'Cormorant Garamond', serif;
       cursor: pointer;
       white-space: nowrap;
       background: transparent;
-      border: 1px solid rgba(253,246,227,0.7);
-      color: #fdf6e3;
+      border: 1px solid var(--dusty-pink);
+      color: var(--burgundy);
       transition: all 0.2s ease;
     }
 
     .pair-btn:hover, .unpair-btn:hover {
-      background: rgba(255, 107, 157, 0.2);
-      border-color: #ff6b9d;
-      color: #ff6b9d;
+      background: rgba(114, 47, 55, 0.08);
+      border-color: var(--burgundy);
     }
 
     .pair-btn.active {
-      background: linear-gradient(135deg, #ff6b9d, #c44569);
+      background: var(--burgundy);
       border: none;
       color: white;
     }
 
     .confirm-pair-btn {
       background: white;
-      color: #c44569;
+      color: var(--burgundy);
       border: none;
-      padding: 6px 14px;
+      padding: 8px 16px;
       border-radius: 999px;
-      font-family: inherit;
+      font-family: 'Cormorant Garamond', serif;
       cursor: pointer;
       font-weight: bold;
       transition: all 0.2s ease;
@@ -437,9 +496,9 @@
       background: transparent;
       color: white;
       border: 1px solid rgba(255,255,255,0.5);
-      padding: 6px 14px;
+      padding: 8px 16px;
       border-radius: 999px;
-      font-family: inherit;
+      font-family: 'Cormorant Garamond', serif;
       cursor: pointer;
       transition: all 0.2s ease;
     }
@@ -452,42 +511,55 @@
     .control-panel {
       position: absolute;
       left: 50%;
-      bottom: 20px;
+      bottom: 24px;
       transform: translateX(-50%);
-      padding: 10px 20px;
-      border-radius: 999px;
-      background: rgba(5,5,18,0.85);
-      border: 1px solid rgba(253,246,227,0.1);
+      padding: 14px 24px;
+      border-radius: 8px;
+      background: var(--cream-light);
+      border: 1px solid var(--dusty-pink);
       display: flex;
       align-items: center;
       gap: 14px;
       flex-wrap: wrap;
       justify-content: center;
       z-index: 20;
-      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 16px rgba(114, 47, 55, 0.12);
     }
 
     #photo-input { display: none; }
 
     .upload-button, .open-button, .close-button {
-      padding: 8px 16px;
-      border-radius: 999px;
-      font-family: inherit;
+      padding: 10px 18px;
+      border-radius: 4px;
+      font-family: 'Cormorant Garamond', serif;
       cursor: pointer;
       white-space: nowrap;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
     }
 
     .upload-button {
-      background: linear-gradient(135deg, #ffcf71, #ff9f7b);
+      background: var(--burgundy);
       border: none;
-      color: #2b1708;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.7);
+      color: var(--cream-light);
+      box-shadow: 0 4px 12px rgba(114, 47, 55, 0.2);
+    }
+
+    .upload-button:hover {
+      background: var(--burgundy-dark);
+      transform: translateY(-1px);
     }
 
     .open-button, .close-button {
       background: transparent;
-      border: 1px solid rgba(253,246,227,0.7);
-      color: #fdf6e3;
+      border: 1px solid var(--dusty-pink);
+      color: var(--burgundy);
+    }
+
+    .open-button:hover, .close-button:hover {
+      border-color: var(--burgundy);
+      background: rgba(114, 47, 55, 0.05);
     }
 
     .disabled {
@@ -496,14 +568,26 @@
     }
 
     .clear-button {
-      padding: 8px 16px;
-      border-radius: 999px;
-      font-family: inherit;
+      padding: 10px 18px;
+      border-radius: 4px;
+      font-family: 'Cormorant Garamond', serif;
       cursor: pointer;
       white-space: nowrap;
       background: transparent;
-      border: 1px solid rgba(253,246,227,0.7);
-      color: #fdf6e3;
+      border: 1px solid var(--dusty-pink);
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+
+    .clear-button:hover {
+      border-color: #c44569;
+      color: #c44569;
+    }
+
+    #photo-count {
+      font-family: 'Pinyon Script', cursive;
+      font-size: 1.1rem;
+      color: var(--burgundy);
     }
 
     .empty-state-bubble {
@@ -511,68 +595,68 @@
       top: 18%;
       left: 50%;
       transform: translateX(-50%);
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px dashed rgba(253,246,227,0.4);
-      background: rgba(5,5,18,0.9);
+      padding: 14px 20px;
+      border-radius: 8px;
+      border: 2px dashed var(--dusty-pink);
+      background: var(--cream-light);
       z-index: 6;
       max-width: 80vw;
       text-align: center;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 1.3rem;
+      color: var(--burgundy);
     }
 
     .greeting {
       position: absolute;
-      top: 20px;
-      left: 24px;
-      font-size: 1.3rem;
-      color: #fdf6e3;
+      top: 24px;
+      left: 28px;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 1.8rem;
+      color: var(--burgundy);
       z-index: 10;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     }
 
     .browse-link {
       position: absolute;
-      top: 62px;
-      right: 24px;
+      top: 66px;
+      right: 28px;
       z-index: 10;
-      padding: 8px 18px;
-      border-radius: 999px;
-      font-family: inherit;
-      font-size: 0.9rem;
-      color: #fdf6e3;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem;
+      color: var(--burgundy);
       text-decoration: none;
-      background: transparent;
-      border: 1px solid rgba(253, 246, 227, 0.5);
+      background: var(--cream-light);
+      border: 1px solid var(--dusty-pink);
       transition: all 0.2s ease;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     }
 
     .browse-link:hover {
-      border-color: #ffcf71;
-      color: #ffcf71;
+      border-color: var(--burgundy);
+      background: rgba(114, 47, 55, 0.05);
     }
 
     .logout-btn {
       position: absolute;
-      top: 20px;
-      right: 24px;
+      top: 24px;
+      right: 28px;
       z-index: 10;
-      padding: 8px 18px;
-      border-radius: 999px;
-      font-family: inherit;
-      font-size: 0.9rem;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem;
       cursor: pointer;
-      background: transparent;
-      border: 1px solid rgba(253, 246, 227, 0.5);
-      color: #fdf6e3;
+      background: var(--cream-light);
+      border: 1px solid var(--dusty-pink);
+      color: var(--burgundy);
       transition: all 0.2s ease;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     }
 
     .logout-btn:hover {
-      background: rgba(255, 107, 107, 0.2);
-      border-color: #ff6b6b;
-      color: #ff6b6b;
+      border-color: #c44569;
+      color: #c44569;
     }
 
     .hidden { display: none; }
@@ -583,7 +667,7 @@
 
     <div id="greeting" class="greeting">Hello, Friend ✨</div>
     <a href="browse.html" class="browse-link">👥 Browse Boxes</a>
-    <button id="logout-btn" class="logout-btn">🚪 Logout</button>
+    <button id="logout-btn" class="logout-btn">Logout</button>
 
     <img id="box-image"
       src="Images/box-close.png"
@@ -598,7 +682,7 @@
 
     <!-- Pairing Mode Banner -->
     <div id="pairing-banner" class="pairing-mode-banner">
-      💕 Select photos to pair (2 or more)
+      💕 Select photos to pair
       <span id="selection-count" class="selection-count">0 selected</span>
       <button id="confirm-pair-btn" class="confirm-pair-btn" disabled>Pair Photos</button>
       <button id="cancel-pair-btn" class="cancel-pair-btn">Cancel</button>
@@ -625,13 +709,13 @@
     </div>
 
     <div class="control-panel">
-      <label for="photo-input" class="upload-button" id="upload-label">➕ Add photos</label>
+      <label for="photo-input" class="upload-button" id="upload-label">+ Add photos</label>
       <input id="photo-input" type="file" accept="image/*" multiple>
 
       <button id="open-box" class="open-button">Open box</button>
       <button id="close-box" class="close-button disabled">Close box</button>
 
-      <span id="photo-count">No photos yet.</span>
+      <span id="photo-count">No photos yet</span>
       <button id="pair-mode-btn" class="pair-btn">💕 Pair Photos</button>
       <button id="clear-photos" class="clear-button">Clear all</button>
     </div>
@@ -736,7 +820,7 @@
   
       photoCountLabel.textContent = count
         ? `${count} photo${count > 1 ? "s" : ""}`
-        : "No photos yet.";
+        : "No photos yet";
   
       boxImage.src = isBoxOpen ? "Images/box-open.png" : "Images/box-close.png";
       boxImage.classList.toggle("box-open", isBoxOpen);

@@ -4,9 +4,26 @@
   <meta charset="UTF-8">
   <title>Memory Box – Viewer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Griffy&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Pinyon+Script&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      --cream: #F5EDE0;
+      --cream-light: #FDF8F3;
+      --burgundy: #722F37;
+      --burgundy-dark: #5A252C;
+      --dusty-pink: #D4A5A5;
+      --dusty-pink-light: #E8C4C4;
+      --gold: #B8860B;
+      --gold-light: #DAA520;
+      --navy: #2C3E50;
+      --soft-blue: #8CBED6;
+      --text-dark: #3D2C29;
+      --text-muted: #6B5B55;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -14,11 +31,28 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at top, #1a1630 0%, #05050a 60%, #020208 100%);
-      font-family: 'Griffy', cursive;
-      color: #fdf6e3;
+      background: var(--cream);
+      background-image: 
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23D4A5A5' stroke-opacity='0.06'%3E%3Cpath d='M30 0v60M0 30h60'/%3E%3C/g%3E%3C/svg%3E"),
+        linear-gradient(180deg, var(--cream-light) 0%, var(--cream) 100%);
+      font-family: 'Crimson Pro', Georgia, serif;
+      color: var(--text-dark);
       overflow: hidden;
     }
+
+    /* Decorative corner flourishes */
+    body::before,
+    body::after {
+      content: "❦";
+      position: fixed;
+      font-size: 2.5rem;
+      color: var(--dusty-pink);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 1;
+    }
+    body::before { top: 20px; left: 20px; }
+    body::after { bottom: 20px; right: 20px; transform: rotate(180deg); }
 
     .memory-box-wrapper {
       position: relative;
@@ -35,8 +69,8 @@
       position: absolute;
       inset: -5px;
       background: radial-gradient(circle,
-        rgba(255, 215, 160, 0.9) 0%,
-        rgba(255, 215, 160, 0) 55%);
+        rgba(212, 165, 165, 0.6) 0%,
+        rgba(212, 165, 165, 0) 55%);
       opacity: 0;
       filter: blur(28px);
       transform: scale(0.8);
@@ -51,7 +85,7 @@
     }
 
     .memory-box-wrapper.open {
-      pointer-events: none;  /* Allow clicking photos behind/around the box */
+      pointer-events: none;
     }
 
     .memory-box-image {
@@ -59,20 +93,23 @@
       max-width: 70vw;
       display: block;
       margin: 0 auto 10px;
+      filter: drop-shadow(0 8px 24px rgba(114, 47, 55, 0.2));
     }
 
     .memory-title {
-      font-size: 24px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 3px;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 2rem;
+      letter-spacing: 2px;
+      color: var(--burgundy);
+      margin-bottom: 4px;
     }
 
     .memory-subtitle {
-      font-size: 14px;
-      opacity: 0.8;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 1rem;
+      font-style: italic;
+      color: var(--text-muted);
+      letter-spacing: 1px;
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
@@ -86,26 +123,38 @@
     .memory-photos {
       position: fixed;
       inset: 0;
-      pointer-events: none;   /* container never blocks anything */
+      pointer-events: none;
       z-index: 5;
     }
 
     .memory-photos.active {
-      z-index: 15;  /* Above the box when open */
+      z-index: 15;
     }
 
     .photo-card {
       position: absolute;
       width: 140px;
-      background: #fdf6e3;
-      border-radius: 7px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
-      padding: 6px;
+      background: var(--cream-light);
+      border-radius: 4px;
+      box-shadow: 
+        0 4px 12px rgba(114, 47, 55, 0.15),
+        0 1px 3px rgba(0, 0, 0, 0.08);
+      padding: 8px;
       pointer-events: none;
       cursor: pointer;
       opacity: 0;
       transform: scale(0.3) rotate(0deg);
       transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, left 0.5s ease, top 0.5s ease, z-index 0s;
+      border: 1px solid var(--dusty-pink-light);
+    }
+
+    .photo-card::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(212, 165, 165, 0.3);
+      border-radius: 2px;
+      pointer-events: none;
     }
 
     .photo-card.visible {
@@ -120,7 +169,7 @@
 
     .memory-photos.active .photo-card.visible:hover {
       transform: scale(1.6);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85);
+      box-shadow: 0 20px 40px rgba(114, 47, 55, 0.3);
       z-index: 100 !important;
     }
 
@@ -128,18 +177,18 @@
       width: 100%;
       height: 100px;
       object-fit: cover;
-      border-radius: 5px;
+      border-radius: 2px;
     }
 
     .photo-card .caption-preview {
-      font-size: 0.6rem;
-      color: #2b1708;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 0.85rem;
+      color: var(--burgundy);
       text-align: center;
-      margin-top: 4px;
+      margin-top: 6px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      opacity: 0.8;
       line-height: 1.2;
     }
 
@@ -147,7 +196,7 @@
       display: none;
     }
 
-    /* tilt - applied when visible - more variety for loose feel */
+    /* tilt - applied when visible */
     .photo-card.visible.tilt-1 { transform: scale(1) rotate(-8deg); }
     .photo-card.visible.tilt-2 { transform: scale(1) rotate(7deg); }
     .photo-card.visible.tilt-3 { transform: scale(1) rotate(-4deg); }
@@ -166,29 +215,30 @@
 
     /* Paired photo styling */
     .photo-card.paired {
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 107, 157, 0.5);
+      box-shadow: 
+        0 4px 12px rgba(114, 47, 55, 0.15),
+        0 1px 3px rgba(0, 0, 0, 0.08),
+        0 0 0 2px rgba(212, 165, 165, 0.5);
     }
 
     .memory-photos.active .photo-card.paired:hover {
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85), 0 0 15px rgba(255, 107, 157, 0.6);
+      box-shadow: 0 20px 40px rgba(114, 47, 55, 0.3), 0 0 15px rgba(212, 165, 165, 0.5);
     }
-
 
     /* Close box button */
     #closeButton {
       position: fixed;
       top: 20px;
       right: 24px;
-      color: #ffcf71;
+      color: var(--burgundy);
       text-decoration: none;
-      font-size: 0.9rem;
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 207, 113, 0.4);
-      background: rgba(5, 5, 18, 0.8);
-      backdrop-filter: blur(6px);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.95rem;
+      padding: 10px 18px;
+      border-radius: 4px;
+      border: 1px solid var(--dusty-pink);
+      background: var(--cream-light);
       cursor: pointer;
-      font-family: inherit;
       transition: all 0.2s ease, opacity 0.25s ease;
       opacity: 0;
       pointer-events: none;
@@ -201,15 +251,15 @@
     }
 
     #closeButton:hover {
-      background: rgba(255, 207, 113, 0.15);
-      border-color: #ffcf71;
+      background: rgba(114, 47, 55, 0.05);
+      border-color: var(--burgundy);
     }
 
     /* modal backdrop */
     .photo-modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.65);
+      background: rgba(61, 44, 41, 0.85);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -217,6 +267,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.25s ease;
+      backdrop-filter: blur(4px);
     }
 
     .photo-modal-backdrop.visible {
@@ -233,6 +284,10 @@
       flex-direction: column;
       align-items: center;
       animation: modalZoom 0.3s ease;
+      background: var(--cream-light);
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid var(--dusty-pink);
     }
 
     @keyframes modalZoom {
@@ -245,41 +300,43 @@
       flex-wrap: wrap;
       gap: 12px;
       justify-content: center;
-      max-height: 75vh;
+      max-height: 70vh;
       overflow-y: auto;
     }
 
     .photo-modal-images img {
       max-width: 100%;
-      max-height: 70vh;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      max-height: 65vh;
+      border-radius: 4px;
+      box-shadow: 0 8px 24px rgba(114, 47, 55, 0.2);
       display: block;
     }
 
     .photo-modal-close {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      border: none;
-      background: rgba(0, 0, 0, 0.5);
-      color: #fdf6e3;
-      font-size: 24px;
+      top: -12px;
+      right: -12px;
+      border: 2px solid var(--burgundy);
+      background: var(--cream-light);
+      color: var(--burgundy);
+      font-size: 1.2rem;
       cursor: pointer;
-      padding: 8px 14px;
+      padding: 8px 12px;
       border-radius: 50%;
-      transition: background 0.2s ease;
+      transition: all 0.2s ease;
       z-index: 10;
     }
 
     .photo-modal-close:hover {
-      background: rgba(0, 0, 0, 0.8);
+      background: var(--burgundy);
+      color: var(--cream-light);
     }
 
     #photoModalCaption {
       margin-top: 16px;
-      font-size: 1.1rem;
-      color: #fdf6e3;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 1.4rem;
+      color: var(--burgundy);
       text-align: center;
       max-width: 500px;
     }
@@ -288,12 +345,14 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: linear-gradient(135deg, #ff6b9d, #c44569);
+      background: linear-gradient(135deg, var(--dusty-pink), var(--burgundy));
       color: white;
-      padding: 4px 12px;
+      padding: 6px 14px;
       border-radius: 999px;
-      font-size: 0.8rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.85rem;
       margin-bottom: 8px;
+      letter-spacing: 0.5px;
     }
 
     /* Navigation bar */
@@ -307,22 +366,21 @@
     }
 
     .nav-link {
-      color: #ffcf71;
+      color: var(--burgundy);
       text-decoration: none;
-      font-size: 0.9rem;
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 207, 113, 0.4);
-      background: rgba(5, 5, 18, 0.8);
-      backdrop-filter: blur(6px);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.95rem;
+      padding: 10px 18px;
+      border-radius: 4px;
+      border: 1px solid var(--dusty-pink);
+      background: var(--cream-light);
       transition: all 0.2s ease;
       cursor: pointer;
-      font-family: inherit;
     }
 
     .nav-link:hover {
-      background: rgba(255, 207, 113, 0.15);
-      border-color: #ffcf71;
+      background: rgba(114, 47, 55, 0.05);
+      border-color: var(--burgundy);
     }
   </style>
 </head>
@@ -332,7 +390,7 @@
   <nav class="nav-bar">
     <a href="memories-page.html" class="nav-link">📦 My Box</a>
     <a href="browse.html" class="nav-link">👥 Browse</a>
-    <a href="login.html" class="nav-link" onclick="localStorage.removeItem('memoryBox_session')">🚪 Logout</a>
+    <a href="login.html" class="nav-link" onclick="localStorage.removeItem('memoryBox_session')">Logout</a>
   </nav>
 
   <!-- BOX + TITLE -->
@@ -344,13 +402,11 @@
       id="memoryBoxImage"
     >
     <div class="memory-title" id="boxTitle">Memory Box</div>
-    <div class="memory-subtitle" id="clickText">Click to Open</div>
+    <div class="memory-subtitle" id="clickText">click to open</div>
   </div>
 
-  <!-- FLOATING PHOTOS (for this box/person) -->
-  <div class="memory-photos" id="memoryPhotos">
-    <!-- Change this list to show someone’s memories -->
-  </div>
+  <!-- FLOATING PHOTOS -->
+  <div class="memory-photos" id="memoryPhotos"></div>
 
   <!-- Close Box Button -->
   <button id="closeButton">✕ Close Box</button>
@@ -370,7 +426,7 @@
     const API = 'http://localhost:3000/api';
   
     document.addEventListener("DOMContentLoaded", async function () {
-      // Get box owner from URL parameter (e.g., ?userId=user@email.com)
+      // Get box owner from URL parameter
       const urlParams = new URLSearchParams(window.location.search);
       const userId = urlParams.get('userId');
       
@@ -416,7 +472,7 @@
       const modalCap        = document.getElementById("photoModalCaption");
       const modalClose      = document.getElementById("photoModalClose");
   
-      // Create photo card elements from data (matching memories-page structure)
+      // Create photo card elements from data
       const photoCards = [];
       const groups = {};
       const photoUnits = [];
@@ -458,11 +514,11 @@
       });
   
       let isOpen = false;
-      let photoTimeouts = []; // Track animation timeouts
+      let photoTimeouts = [];
 
       // Show empty state if no photos
       if (photoCards.length === 0) {
-        clickText.textContent = 'Box is empty';
+        clickText.textContent = 'box is empty';
         boxWrapper.style.cursor = 'default';
       }
 
@@ -556,7 +612,7 @@
         }, 500);
       });
 
-      // ---- PLACE PHOTOS (matching memories-page positioning) ----
+      // ---- PLACE PHOTOS ----
       function placeCard(card, cardIndex, totalCards, animate = false) {
         const rect = photosContainer.getBoundingClientRect();
         const cx = rect.width / 2;
@@ -567,48 +623,40 @@
         const padding = 20;
         const boxSize = 140;
         
-        // Calculate grid dimensions with overlap - looser spacing
-        const overlapX = 40; // How much cards overlap horizontally
-        const overlapY = 15; // How much cards overlap vertically - more space between rows
+        const overlapX = 40;
+        const overlapY = 15;
         const effectiveCardWidth = cardWidth - overlapX;
         const effectiveCardHeight = cardHeight - overlapY;
         
-        // Calculate how many cards fit per row with overlap
         const availableWidth = rect.width - padding * 2 - cardWidth;
-        const availableHeight = rect.height - padding * 2 - 150 - cardHeight; // Room for nav and controls
+        const availableHeight = rect.height - padding * 2 - 150 - cardHeight;
         
         const cardsPerRow = Math.max(4, Math.floor(availableWidth / effectiveCardWidth) + 1);
         
-        // Position in cascading order
         const row = Math.floor(cardIndex / cardsPerRow);
         const col = cardIndex % cardsPerRow;
         
-        // Alternate row starting position for more natural cascade
         const rowOffset = (row % 2) * (effectiveCardWidth * 0.6);
         
         let x = padding + col * effectiveCardWidth + rowOffset;
         let y = padding + 70 + row * effectiveCardHeight;
         
-        // Add more pronounced jitter for looser, natural look
         const jitterX = (Math.sin(cardIndex * 2.5) * 20) + (Math.cos(cardIndex * 1.7) * 15);
         const jitterY = (Math.cos(cardIndex * 3.2) * 18) + (Math.sin(cardIndex * 2.1) * 12);
         x += jitterX;
         y += jitterY;
         
-        // Avoid the center box area (circular exclusion like memories-page)
         const cardCenterX = x + cardWidth / 2;
         const cardCenterY = y + cardHeight / 2;
         const distFromCenter = Math.sqrt(Math.pow(cardCenterX - cx, 2) + Math.pow(cardCenterY - cy, 2));
         
         if (distFromCenter < boxSize + 30) {
-          // Push away from center box
           const angle = Math.atan2(cardCenterY - cy, cardCenterX - cx);
           const pushDist = boxSize + 40 - distFromCenter;
           x += Math.cos(angle) * pushDist;
           y += Math.sin(angle) * pushDist;
         }
         
-        // Wrap around if going off screen
         if (x > rect.width - cardWidth - padding) {
           x = padding + ((x - padding) % (rect.width - cardWidth - padding * 2));
         }
@@ -616,11 +664,9 @@
           y = padding + 70 + ((y - padding - 70) % (availableHeight));
         }
         
-        // Final bounds check
         x = Math.max(padding, Math.min(x, rect.width - cardWidth - padding));
         y = Math.max(padding + 70, Math.min(y, rect.height - cardHeight - padding - 100));
         
-        // Z-index increases with card order so later photos appear on top
         const baseZIndex = 5 + cardIndex;
         
         if (animate) {
@@ -628,7 +674,7 @@
           card.style.top = `${cy - cardHeight/2}px`;
           requestAnimationFrame(() => {
             const innerTimeout = setTimeout(() => {
-              if (!isOpen) return; // Don't animate if box was closed
+              if (!isOpen) return;
               card.style.left = `${x}px`;
               card.style.top = `${y}px`;
               card.style.zIndex = baseZIndex;
@@ -644,11 +690,11 @@
       }
 
       function placePhotos() {
-        photoTimeouts = []; // Clear any previous timeouts
+        photoTimeouts = [];
         const totalCards = photoCards.length;
         photoCards.forEach((card, index) => {
           const timeoutId = setTimeout(() => {
-            if (!isOpen) return; // Don't animate if box was closed
+            if (!isOpen) return;
             placeCard(card, index, totalCards, true);
           }, index * 80);
           photoTimeouts.push(timeoutId);
