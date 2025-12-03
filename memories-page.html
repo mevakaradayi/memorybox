@@ -141,22 +141,34 @@
 
     .modal-images-container {
       display: flex;
-      gap: 16px;
+      gap: 12px;
       justify-content: center;
       align-items: center;
       flex-wrap: wrap;
+      max-width: 95vw;
     }
 
     .modal-images-container img {
-      max-width: 45vw;
-      max-height: 65vh;
+      max-width: 40vw;
+      max-height: 50vh;
       border-radius: 12px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      object-fit: contain;
     }
 
     .modal-images-container.single img {
       max-width: 100%;
       max-height: 70vh;
+    }
+
+    .modal-images-container.two-images img {
+      max-width: 45vw;
+      max-height: 65vh;
+    }
+
+    .modal-images-container.many-images img {
+      max-width: 30vw;
+      max-height: 40vh;
     }
 
     .paired-badge {
@@ -547,8 +559,8 @@
 
     <!-- Pairing Mode Banner -->
     <div id="pairing-banner" class="pairing-mode-banner">
-      💕 Select 2 photos to pair
-      <span id="selection-count" class="selection-count">0/2</span>
+      💕 Select photos to pair (2 or more)
+      <span id="selection-count" class="selection-count">0 selected</span>
       <button id="confirm-pair-btn" class="confirm-pair-btn" disabled>Pair Photos</button>
       <button id="cancel-pair-btn" class="cancel-pair-btn">Cancel</button>
     </div>
@@ -842,8 +854,8 @@
         // Deselect
         selectedForPairing.splice(index, 1);
         card?.classList.remove('selected-for-pair');
-      } else if (selectedForPairing.length < 2) {
-        // Select
+      } else {
+        // Select (no limit)
         selectedForPairing.push(photoId);
         card?.classList.add('selected-for-pair');
       }
@@ -853,8 +865,8 @@
 
     function updatePairingUI() {
       const count = selectedForPairing.length;
-      document.getElementById('selection-count').textContent = `${count}/2`;
-      document.getElementById('confirm-pair-btn').disabled = count !== 2;
+      document.getElementById('selection-count').textContent = `${count} selected`;
+      document.getElementById('confirm-pair-btn').disabled = count < 2;
     }
   
     function renderPhotos() {
@@ -973,7 +985,14 @@
       
       // Clear and populate images container
       modalImagesContainer.innerHTML = '';
-      modalImagesContainer.classList.toggle('single', currentGroupPhotos.length === 1);
+      modalImagesContainer.classList.remove('single', 'two-images', 'many-images');
+      if (currentGroupPhotos.length === 1) {
+        modalImagesContainer.classList.add('single');
+      } else if (currentGroupPhotos.length === 2) {
+        modalImagesContainer.classList.add('two-images');
+      } else {
+        modalImagesContainer.classList.add('many-images');
+      }
       
       currentGroupPhotos.forEach(p => {
         const img = document.createElement('img');
@@ -984,7 +1003,14 @@
       
       // Show paired badge if grouped
       const isPaired = currentGroupPhotos.length > 1;
-      pairedBadge.style.display = isPaired ? 'inline-flex' : 'none';
+      if (isPaired) {
+        pairedBadge.style.display = 'inline-flex';
+        pairedBadge.textContent = currentGroupPhotos.length === 2 
+          ? '💕 Paired Memory' 
+          : `💕 ${currentGroupPhotos.length} Photos Paired`;
+      } else {
+        pairedBadge.style.display = 'none';
+      }
       
       // Show unpair button for paired photos (only for own box)
       if (isOwnBox && isPaired) {
@@ -1127,14 +1153,15 @@
     }
 
     async function confirmPairing() {
-      if (selectedForPairing.length !== 2) return;
+      if (selectedForPairing.length < 2) return;
       
       const groupId = `pair_${Date.now()}`;
       console.log('Pairing photos:', selectedForPairing, 'with groupId:', groupId);
       
       let successCount = 0;
+      const totalPhotos = selectedForPairing.length;
       
-      // Update both photos with the same group
+      // Update all selected photos with the same group
       for (const photoId of selectedForPairing) {
         try {
           const updatedPhoto = await updatePhotoGroupOnServer(photoId, groupId);
@@ -1151,7 +1178,7 @@
         }
       }
       
-      if (successCount === 2) {
+      if (successCount === totalPhotos) {
         console.log('Pairing successful!');
       }
       
