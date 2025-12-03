@@ -50,16 +50,15 @@
       transform: scale(1);
     }
 
+    .memory-box-wrapper.open {
+      pointer-events: none;  /* Allow clicking photos behind/around the box */
+    }
+
     .memory-box-image {
       width: 400px;
       max-width: 70vw;
       display: block;
       margin: 0 auto 10px;
-      transition: transform 0.25s ease;
-    }
-
-    .memory-box-wrapper:hover .memory-box-image {
-      transform: scale(1.05);
     }
 
     .memory-title {
@@ -91,39 +90,86 @@
       z-index: 5;
     }
 
-    .memory-photo {
+    .memory-photos.active {
+      z-index: 15;  /* Above the box when open */
+    }
+
+    .photo-card {
       position: absolute;
-      width: 130px;
-      height: auto;
-      opacity: 0;
-      pointer-events: none;
-      transform: translate(-50%, -50%) scale(0.2);
+      width: 140px;
       background: #fdf6e3;
-      border-radius: 8px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      border-radius: 7px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
       padding: 6px;
+      pointer-events: none;
       cursor: pointer;
-      object-fit: cover;
-      transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, z-index 0s;
+      opacity: 0;
+      transform: scale(0.3) rotate(0deg);
+      transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, left 0.5s ease, top 0.5s ease, z-index 0s;
+    }
+
+    .photo-card.visible {
+      opacity: 1;
+      transform: scale(1);
     }
 
     /* when box is open, show photos & allow clicks */
-    .memory-photos.active .memory-photo {
+    .memory-photos.active .photo-card {
       pointer-events: auto;
     }
 
-    .memory-photos.active .memory-photo:hover {
-      transform: translate(-50%, -50%) scale(1.15);
+    .memory-photos.active .photo-card.visible:hover {
+      transform: scale(1.6);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85);
-      z-index: 50 !important;
+      z-index: 100 !important;
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+
+    .photo-card .caption-preview {
+      font-size: 0.6rem;
+      color: #2b1708;
+      text-align: center;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0.8;
+      line-height: 1.2;
+    }
+
+    .photo-card .caption-preview.empty {
+      display: none;
+    }
+
+    /* tilt - applied when visible - more variety for loose feel */
+    .photo-card.visible.tilt-1 { transform: scale(1) rotate(-8deg); }
+    .photo-card.visible.tilt-2 { transform: scale(1) rotate(7deg); }
+    .photo-card.visible.tilt-3 { transform: scale(1) rotate(-4deg); }
+    .photo-card.visible.tilt-4 { transform: scale(1) rotate(5deg); }
+    .photo-card.visible.tilt-5 { transform: scale(1) rotate(-10deg); }
+    .photo-card.visible.tilt-6 { transform: scale(1) rotate(3deg); }
+    
+    .photo-card.visible.tilt-1:hover,
+    .photo-card.visible.tilt-2:hover,
+    .photo-card.visible.tilt-3:hover,
+    .photo-card.visible.tilt-4:hover,
+    .photo-card.visible.tilt-5:hover,
+    .photo-card.visible.tilt-6:hover { 
+      transform: scale(1.6) rotate(0deg); 
     }
 
     /* Paired photo styling */
-    .memory-photo.paired {
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 107, 157, 0.5);
+    .photo-card.paired {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 107, 157, 0.5);
     }
 
-    .memory-photos.active .memory-photo.paired:hover {
+    .memory-photos.active .photo-card.paired:hover {
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85), 0 0 15px rgba(255, 107, 157, 0.6);
     }
 
@@ -370,66 +416,74 @@
       const modalCap        = document.getElementById("photoModalCaption");
       const modalClose      = document.getElementById("photoModalClose");
   
-      // Create photo elements from data
-      const photos = [];
+      // Create photo card elements from data (matching memories-page structure)
+      const photoCards = [];
       const groups = {};
       const photoUnits = [];
-  
+
       photosData.forEach((photoData, index) => {
-        const img = document.createElement('img');
-        img.src = photoData.imageData;
-        img.alt = photoData.caption || '';
-        img.className = 'memory-photo';
+        const card = document.createElement('div');
+        card.className = `photo-card tilt-${(index % 6) + 1}`;
         if (photoData.group) {
-          img.dataset.group = photoData.group;
-          img.classList.add('paired');
+          card.dataset.group = photoData.group;
+          card.classList.add('paired');
         }
-        photosContainer.appendChild(img);
-        photos.push(img);
+        card.dataset.id = photoData.id;
+        card.dataset.caption = photoData.caption || '';
+        card.dataset.src = photoData.imageData;
+
+        const captionClass = photoData.caption ? 'caption-preview' : 'caption-preview empty';
+        card.innerHTML = `
+          <img src="${photoData.imageData}">
+          <div class="${captionClass}">${photoData.caption || ''}</div>
+        `;
+
+        photosContainer.appendChild(card);
+        photoCards.push(card);
       });
-  
-      // Group photos
-      photos.forEach((photo) => {
-        const groupId = photo.dataset.group;
+
+      // Group photo cards
+      photoCards.forEach((card) => {
+        const groupId = card.dataset.group;
         if (groupId) {
           if (!groups[groupId]) groups[groupId] = [];
-          groups[groupId].push(photo);
+          groups[groupId].push(card);
         } else {
-          photoUnits.push({ photos: [photo] });
+          photoUnits.push({ cards: [card] });
         }
       });
-  
+
       Object.values(groups).forEach((arr) => {
-        photoUnits.push({ photos: arr });
+        photoUnits.push({ cards: arr });
       });
   
       let isOpen = false;
-  
+
       // Show empty state if no photos
-      if (photos.length === 0) {
+      if (photoCards.length === 0) {
         clickText.textContent = 'Box is empty';
         boxWrapper.style.cursor = 'default';
       }
-  
+
       // ---- MODAL LOGIC ----
       const pairedBadge = document.getElementById('pairedBadge');
       
-      function openPhotoModal(set) {
+      function openPhotoModal(cards) {
         modalImages.innerHTML = "";
         const captions = [];
 
-        set.forEach((p) => {
+        cards.forEach((card) => {
           const img = document.createElement("img");
-          img.src = p.src;
-          img.alt = p.alt || "";
-          if (p.alt && p.alt.trim() !== '') {
-            captions.push(p.alt);
+          img.src = card.dataset.src;
+          img.alt = card.dataset.caption || "";
+          if (card.dataset.caption && card.dataset.caption.trim() !== '') {
+            captions.push(card.dataset.caption);
           }
           modalImages.appendChild(img);
         });
 
         // Show paired badge if multiple photos
-        pairedBadge.style.display = set.length > 1 ? 'inline-flex' : 'none';
+        pairedBadge.style.display = cards.length > 1 ? 'inline-flex' : 'none';
 
         // Only show caption area if there are actual captions
         if (captions.length > 0) {
@@ -441,19 +495,19 @@
         }
         modal.classList.add("visible");
       }
-  
+
       function closePhotoModal() {
         modal.classList.remove("visible");
       }
-  
-      photos.forEach((photo) => {
-        photo.addEventListener("click", () => {
+
+      photoCards.forEach((card) => {
+        card.addEventListener("click", () => {
           if (!isOpen) return;
-          const groupId = photo.dataset.group;
+          const groupId = card.dataset.group;
           if (groupId && groups[groupId]) {
             openPhotoModal(groups[groupId]);
           } else {
-            openPhotoModal([photo]);
+            openPhotoModal([card]);
           }
         });
       });
@@ -468,27 +522,26 @@
   
       // ---- BOX OPEN / CLOSE ----
       boxWrapper.addEventListener("click", () => {
-        if (isOpen || photos.length === 0) return;
+        if (isOpen || photoCards.length === 0) return;
         isOpen = true;
-  
+
         boxWrapper.classList.add("open");
         boxImage.src = "Images/box-open.png";
         clickText.classList.add("hidden");
-  
+
         closeBtn.classList.add("visible");
         photosContainer.classList.add("active");
-  
-        scatterPhotos();
+
+        placePhotos();
       });
-  
+
       closeBtn.addEventListener("click", () => {
         closeBtn.classList.remove("visible");
-  
-        photos.forEach((photo) => {
-          photo.style.transition = "opacity 0.4s ease";
-          photo.style.opacity = 0;
+
+        photoCards.forEach((card) => {
+          card.classList.remove('visible');
         });
-  
+
         setTimeout(() => {
           isOpen = false;
           boxWrapper.classList.remove("open");
@@ -497,81 +550,147 @@
           photosContainer.classList.remove("active");
         }, 500);
       });
-  
-      // ---- SCATTER PHOTOS AROUND BOX ----
-      function scatterPhotos() {
-        const rect    = boxWrapper.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-  
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-  
-        const margin = 40;
-        const minR = Math.min(vw, vh) * 0.28;
-        const maxR = Math.max(vw, vh) * 0.45;
-  
-      photoUnits.forEach((unit, unitIndex) => {
-        const baseT = unitIndex / photoUnits.length;
-        const jitter = (Math.random() - 0.5) * (1 / photoUnits.length);
-        const t = baseT + jitter;
-        const angle = t * Math.PI * 2;
 
-        const radius = randomBetween(minR, maxR);
-
-        let targetX = centerX + radius * Math.cos(angle);
-        let targetY = centerY + radius * Math.sin(angle);
-
-        targetX = Math.min(vw - margin, Math.max(margin, targetX));
-        targetY = Math.min(vh - margin, Math.max(margin, targetY));
-
-        const baseRotation = randomBetween(-25, 25);
-        const delay = unitIndex * 90;
-        const isPaired = unit.photos.length > 1;
-
-        unit.photos.forEach((photo, idx) => {
-          // For paired photos, stack them with slight offset to show they're together
-          // First photo is base, subsequent ones offset slightly to create a stack effect
-          const stackOffset = isPaired ? 12 : 0;
-          const offsetX = idx * stackOffset;
-          const offsetY = idx * stackOffset;
+      // ---- PLACE PHOTOS (matching memories-page positioning) ----
+      function placeCard(card, cardIndex, totalCards, animate = false) {
+        const rect = photosContainer.getBoundingClientRect();
+        const cx = rect.width / 2;
+        const cy = rect.height / 2;
+        
+        const cardWidth = 140;
+        const cardHeight = 120;
+        const padding = 20;
+        
+        // Get actual box size from the DOM (400px default, but can be smaller on mobile)
+        const boxRect = boxWrapper.getBoundingClientRect();
+        const boxExclusionWidth = boxRect.width / 2 + 40; // Half box width + padding
+        const boxExclusionHeight = boxRect.height / 2 + 40; // Half box height + padding
+        
+        // Calculate grid dimensions with overlap - looser spacing
+        const overlapX = 40; // How much cards overlap horizontally
+        const overlapY = 15; // How much cards overlap vertically - more space between rows
+        const effectiveCardWidth = cardWidth - overlapX;
+        const effectiveCardHeight = cardHeight - overlapY;
+        
+        // Calculate how many cards fit per row with overlap
+        const availableWidth = rect.width - padding * 2 - cardWidth;
+        const availableHeight = rect.height - padding * 2 - 150 - cardHeight; // Room for nav and controls
+        
+        const cardsPerRow = Math.max(4, Math.floor(availableWidth / effectiveCardWidth) + 1);
+        
+        // Position in cascading order
+        const row = Math.floor(cardIndex / cardsPerRow);
+        const col = cardIndex % cardsPerRow;
+        
+        // Alternate row starting position for more natural cascade
+        const rowOffset = (row % 2) * (effectiveCardWidth * 0.6);
+        
+        let x = padding + col * effectiveCardWidth + rowOffset;
+        let y = padding + 70 + row * effectiveCardHeight;
+        
+        // Add more pronounced jitter for looser, natural look
+        const jitterX = (Math.sin(cardIndex * 2.5) * 20) + (Math.cos(cardIndex * 1.7) * 15);
+        const jitterY = (Math.cos(cardIndex * 3.2) * 18) + (Math.sin(cardIndex * 2.1) * 12);
+        x += jitterX;
+        y += jitterY;
+        
+        // Check if card overlaps with the center box area (using rectangular exclusion zone)
+        const cardLeft = x;
+        const cardRight = x + cardWidth;
+        const cardTop = y;
+        const cardBottom = y + cardHeight;
+        
+        const boxLeft = cx - boxExclusionWidth;
+        const boxRight = cx + boxExclusionWidth;
+        const boxTop = cy - boxExclusionHeight;
+        const boxBottom = cy + boxExclusionHeight;
+        
+        // Check if card overlaps with box exclusion zone
+        const overlapsBox = !(cardRight < boxLeft || cardLeft > boxRight || cardBottom < boxTop || cardTop > boxBottom);
+        
+        if (overlapsBox) {
+          // Push card away from center - find which edge is closest and push past it
+          const cardCenterX = x + cardWidth / 2;
+          const cardCenterY = y + cardHeight / 2;
           
-          // Rotate paired photos slightly differently to show stacking
-          const rotationOffset = isPaired ? (idx - 0.5) * 8 : 0;
-          const photoRotation = baseRotation + rotationOffset;
+          // Calculate distances to each edge of the exclusion zone
+          const distToLeft = cardRight - boxLeft;
+          const distToRight = boxRight - cardLeft;
+          const distToTop = cardBottom - boxTop;
+          const distToBottom = boxBottom - cardTop;
           
-          // Give each photo a unique z-index for proper layering (paired photos stack)
-          const photoZIndex = 5 + unitIndex * 2 + idx;
-
-          photo.style.left = centerX + "px";
-          photo.style.top  = centerY + "px";
-          photo.style.transition = "none";
-          photo.style.opacity = 0;
-          photo.style.transform = "translate(-50%, -50%) scale(0.2)";
-          photo.style.zIndex = photoZIndex;
-
+          // Find the smallest push distance
+          const minHorizontal = Math.min(distToLeft, distToRight);
+          const minVertical = Math.min(distToTop, distToBottom);
+          
+          if (minHorizontal < minVertical) {
+            // Push horizontally
+            if (cardCenterX < cx) {
+              x = boxLeft - cardWidth - 10; // Push to left of box
+            } else {
+              x = boxRight + 10; // Push to right of box
+            }
+          } else {
+            // Push vertically
+            if (cardCenterY < cy) {
+              y = boxTop - cardHeight - 10; // Push above box
+            } else {
+              y = boxBottom + 10; // Push below box
+            }
+          }
+        }
+        
+        // Wrap around if going off screen
+        if (x > rect.width - cardWidth - padding) {
+          x = padding + ((x - padding) % (rect.width - cardWidth - padding * 2));
+        }
+        if (y > rect.height - cardHeight - padding - 100) {
+          y = padding + 70 + ((y - padding - 70) % (availableHeight));
+        }
+        
+        // Final bounds check
+        x = Math.max(padding, Math.min(x, rect.width - cardWidth - padding));
+        y = Math.max(padding + 70, Math.min(y, rect.height - cardHeight - padding - 100));
+        
+        // Z-index increases with card order so later photos appear on top
+        const baseZIndex = 5 + cardIndex;
+        
+        if (animate) {
+          card.style.left = `${cx - cardWidth/2}px`;
+          card.style.top = `${cy - cardHeight/2}px`;
           requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              photo.style.transition =
-                `left 0.9s ease-out ${delay}ms, ` +
-                `top 0.9s ease-out ${delay}ms, ` +
-                `transform 0.9s ease-out ${delay}ms, ` +
-                `opacity 0.9s ease-out ${delay}ms`;
-
-              photo.style.left = (targetX + offsetX) + "px";
-              photo.style.top  = (targetY + offsetY) + "px";
-              photo.style.opacity = 1;
-              photo.style.transform =
-                `translate(-50%, -50%) scale(1) rotate(${photoRotation}deg)`;
-            });
+            setTimeout(() => {
+              card.style.left = `${x}px`;
+              card.style.top = `${y}px`;
+              card.style.zIndex = baseZIndex;
+              card.classList.add('visible');
+            }, 50);
           });
+        } else {
+          card.style.left = `${x}px`;
+          card.style.top = `${y}px`;
+          card.style.zIndex = baseZIndex;
+        }
+      }
+
+      function placePhotos() {
+        const totalCards = photoCards.length;
+        photoCards.forEach((card, index) => {
+          setTimeout(() => {
+            placeCard(card, index, totalCards, true);
+          }, index * 80);
         });
+      }
+
+      // Handle window resize
+      window.addEventListener("resize", () => {
+        if (isOpen) {
+          photoCards.forEach((card, index) => {
+            placeCard(card, index, photoCards.length, false);
+            card.classList.add('visible');
+          });
+        }
       });
-      }
-  
-      function randomBetween(min, max) {
-        return Math.random() * (max - min) + min;
-      }
     });
   </script>  
 </body>
