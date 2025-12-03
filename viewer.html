@@ -224,18 +224,6 @@
   <!-- FLOATING PHOTOS (for this box/person) -->
   <div class="memory-photos" id="memoryPhotos">
     <!-- Change this list to show someone’s memories -->
-    <img src="Images/Abigail.jpg"        alt="Abigail"              class="memory-photo" data-group="Abigail">
-    <img src="Images/AbigailArka.jpg"    alt="Abigail (back)"       class="memory-photo" data-group="Abigail">
-
-    <img src="Images/ArzuNisan.jpg"      alt="Arzu’s engagement"    class="memory-photo">
-    <img src="Images/Bagel.jpg"          alt="First NYC bagel"      class="memory-photo">
-    <img src="Images/DC.jpg"             alt="DC trip"              class="memory-photo">
-    <img src="Images/GLLSRetreat.jpg"    alt="GLLS retreat"         class="memory-photo">
-
-    <img src="Images/Jeong.jpg"          alt="Jeong"                class="memory-photo" data-group="Jeong">
-    <img src="Images/Jeong2.jpg"         alt="Jeong (back)"         class="memory-photo" data-group="Jeong">
-
-    <!-- etc… keep adding / grouping as you like -->
   </div>
 
   <!-- Close Box Button -->
@@ -252,32 +240,73 @@
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // Get box owner from URL parameter (e.g., ?owner=Sarah)
+    const API = 'http://localhost:3000/api';
+  
+    document.addEventListener("DOMContentLoaded", async function () {
+      // Get box owner from URL parameter (e.g., ?userId=user@email.com)
       const urlParams = new URLSearchParams(window.location.search);
-      const boxOwner = urlParams.get('owner') || 'Someone';
+      const userId = urlParams.get('userId');
       
-      // Update page title and box title to show owner's name
+      if (!userId) {
+        alert('No user specified. Add ?userId=email@example.com to the URL');
+        return;
+      }
+  
+      // Fetch user info
+      let ownerName = 'Someone';
+      try {
+        const userRes = await fetch(`${API}/users/${encodeURIComponent(userId)}`);
+        if (userRes.ok) {
+          const user = await userRes.json();
+          ownerName = user.name || userId;
+        }
+      } catch (e) {
+        console.error('Could not fetch user info:', e);
+      }
+      
+      // Update titles
       const boxTitle = document.getElementById("boxTitle");
-      boxTitle.textContent = `${boxOwner}'s Memory Box`;
-      document.title = `${boxOwner}'s Memory Box`;
+      boxTitle.textContent = `${ownerName}'s Memory Box`;
+      document.title = `${ownerName}'s Memory Box`;
       
+      // Fetch photos
+      let photosData = [];
+      try {
+        const photosRes = await fetch(`${API}/photos/${encodeURIComponent(userId)}`);
+        photosData = await photosRes.json();
+      } catch (e) {
+        console.error('Could not fetch photos:', e);
+      }
+  
       const boxWrapper      = document.getElementById("memoryBox");
       const boxImage        = document.getElementById("memoryBoxImage");
       const clickText       = document.getElementById("clickText");
       const photosContainer = document.getElementById("memoryPhotos");
-      const photos          = Array.from(document.querySelectorAll(".memory-photo"));
       const closeBtn        = document.getElementById("closeButton");
-
+  
       const modal           = document.getElementById("photoModal");
       const modalImages     = document.getElementById("photoModalImages");
       const modalCap        = document.getElementById("photoModalCaption");
       const modalClose      = document.getElementById("photoModalClose");
-
-      // group photos by data-group
+  
+      // Create photo elements from data
+      const photos = [];
       const groups = {};
-      const photoUnits = [];  // each unit = { photos: [img, ...] }
-
+      const photoUnits = [];
+  
+      photosData.forEach((photoData, index) => {
+        const img = document.createElement('img');
+        img.src = photoData.imageData;
+        img.alt = photoData.caption || `Photo ${index + 1}`;
+        img.className = 'memory-photo';
+        if (photoData.group) {
+          img.dataset.group = photoData.group;
+        }
+        photosContainer.appendChild(img);
+        photos.push(img);
+      });
+  
+      // Group photos
       photos.forEach((photo) => {
         const groupId = photo.dataset.group;
         if (groupId) {
@@ -287,34 +316,40 @@
           photoUnits.push({ photos: [photo] });
         }
       });
-
+  
       Object.values(groups).forEach((arr) => {
         photoUnits.push({ photos: arr });
       });
-
+  
       let isOpen = false;
-
+  
+      // Show empty state if no photos
+      if (photos.length === 0) {
+        clickText.textContent = 'Box is empty';
+        boxWrapper.style.cursor = 'default';
+      }
+  
       // ---- MODAL LOGIC ----
       function openPhotoModal(set) {
         modalImages.innerHTML = "";
         const captions = [];
-
+  
         set.forEach((p) => {
           const img = document.createElement("img");
           img.src = p.src;
           img.alt = p.alt || "";
-          if (img.alt) captions.push(img.alt);
+          if (img.alt && img.alt !== 'Photo') captions.push(img.alt);
           modalImages.appendChild(img);
         });
-
+  
         modalCap.textContent = captions.join(" · ");
         modal.classList.add("visible");
       }
-
+  
       function closePhotoModal() {
         modal.classList.remove("visible");
       }
-
+  
       photos.forEach((photo) => {
         photo.addEventListener("click", () => {
           if (!isOpen) return;
@@ -326,7 +361,7 @@
           }
         });
       });
-
+  
       modalClose.addEventListener("click", closePhotoModal);
       modal.addEventListener("click", (e) => {
         if (e.target === modal) closePhotoModal();
@@ -334,30 +369,30 @@
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closePhotoModal();
       });
-
+  
       // ---- BOX OPEN / CLOSE ----
       boxWrapper.addEventListener("click", () => {
-        if (isOpen) return;
+        if (isOpen || photos.length === 0) return;
         isOpen = true;
-
+  
         boxWrapper.classList.add("open");
         boxImage.src = "Images/box-open.png";
         clickText.classList.add("hidden");
-
+  
         closeBtn.classList.add("visible");
         photosContainer.classList.add("active");
-
+  
         scatterPhotos();
       });
-
+  
       closeBtn.addEventListener("click", () => {
         closeBtn.classList.remove("visible");
-
+  
         photos.forEach((photo) => {
           photo.style.transition = "opacity 0.4s ease";
           photo.style.opacity = 0;
         });
-
+  
         setTimeout(() => {
           isOpen = false;
           boxWrapper.classList.remove("open");
@@ -366,50 +401,49 @@
           photosContainer.classList.remove("active");
         }, 500);
       });
-
+  
       // ---- SCATTER PHOTOS AROUND BOX ----
       function scatterPhotos() {
         const rect    = boxWrapper.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-
+  
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-
+  
         const margin = 80;
         const minR = Math.max(rect.width, rect.height) * 0.9;
         const maxR = Math.min(vw, vh) * 0.7;
-
+  
         photoUnits.forEach((unit, unitIndex) => {
           const baseT = unitIndex / photoUnits.length;
           const jitter = (Math.random() - 0.5) * (1 / photoUnits.length);
           const t = baseT + jitter;
           const angle = t * Math.PI * 2;
-
+  
           const radius = randomBetween(minR, maxR);
-
+  
           let targetX = centerX + radius * Math.cos(angle);
           let targetY = centerY + radius * Math.sin(angle);
-
+  
           targetX = Math.min(vw - margin, Math.max(margin, targetX));
           targetY = Math.min(vh - margin, Math.max(margin, targetY));
-
+  
           const baseRotation = randomBetween(-25, 25);
           const delay = unitIndex * 90;
           const spread = 30;
-
+  
           unit.photos.forEach((photo, idx) => {
             const offsetAngle = (idx - (unit.photos.length - 1) / 2) * 0.25;
             const offsetX = Math.cos(offsetAngle) * spread * idx;
             const offsetY = Math.sin(offsetAngle) * spread * idx;
-
-            // start at box center
+  
             photo.style.left = centerX + "px";
             photo.style.top  = centerY + "px";
             photo.style.transition = "none";
             photo.style.opacity = 0;
             photo.style.transform = "translate(-50%, -50%) scale(0.2)";
-
+  
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
                 photo.style.transition =
@@ -417,7 +451,7 @@
                   `top 0.9s ease-out ${delay}ms, ` +
                   `transform 0.9s ease-out ${delay}ms, ` +
                   `opacity 0.9s ease-out ${delay}ms`;
-
+  
                 photo.style.left = (targetX + offsetX) + "px";
                 photo.style.top  = (targetY + offsetY) + "px";
                 photo.style.opacity = 1;
@@ -428,11 +462,11 @@
           });
         });
       }
-
+  
       function randomBetween(min, max) {
         return Math.random() * (max - min) + min;
       }
     });
-  </script>
+  </script>  
 </body>
 </html>

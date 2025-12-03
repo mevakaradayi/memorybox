@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Browse Memory Boxes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Griffy&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1a1630 0%, #05050a 60%, #020208 100%);
+      font-family: 'Griffy', cursive;
+      color: #fdf6e3;
+      padding: 40px 20px;
+    }
+    
+    h1 {
+      text-align: center;
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+    
+    .subtitle {
+      text-align: center;
+      opacity: 0.8;
+      margin-bottom: 40px;
+      font-size: 1rem;
+    }
+    
+    .users-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .user-card {
+      background: rgba(15, 14, 40, 0.9);
+      border-radius: 20px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .user-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(255, 207, 113, 0.1) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .user-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      border-color: #ffcf71;
+    }
+    
+    .user-card:hover::before {
+      opacity: 1;
+    }
+    
+    .user-avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffcf71, #ff9f7b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 1.8rem;
+    }
+    
+    .user-name {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+      color: #fdf6e3;
+    }
+    
+    .photo-count {
+      opacity: 0.7;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .view-hint {
+      margin-top: 14px;
+      font-size: 0.8rem;
+      opacity: 0;
+      color: #ffcf71;
+      transition: opacity 0.2s ease;
+    }
+    
+    .user-card:hover .view-hint {
+      opacity: 1;
+    }
+    
+    .nav-bar {
+      max-width: 1000px;
+      margin: 0 auto 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .nav-link {
+      color: #ffcf71;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 207, 113, 0.4);
+      transition: all 0.2s ease;
+    }
+    
+    .nav-link:hover {
+      background: rgba(255, 207, 113, 0.15);
+      border-color: #ffcf71;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      opacity: 0.8;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 60px;
+      font-size: 1.2rem;
+      opacity: 0.7;
+    }
+    
+    .loading::after {
+      content: "";
+      animation: dots 1.5s infinite;
+    }
+    
+    @keyframes dots {
+      0%, 20% { content: ""; }
+      40% { content: "."; }
+      60% { content: ".."; }
+      80%, 100% { content: "..."; }
+    }
+
+    @media (max-width: 500px) {
+      h1 { font-size: 1.7rem; }
+      .users-grid { gap: 16px; }
+      .user-card { padding: 22px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>✨ Memory Boxes</h1>
+  <p class="subtitle">Peek into the memories of others</p>
+  
+  <nav class="nav-bar">
+    <a href="memories-page.html" class="nav-link">📦 My Box</a>
+    <a href="login.html" class="nav-link" id="logoutLink" onclick="logout()">🚪 Logout</a>
+  </nav>
+  
+  <div class="users-grid" id="usersGrid">
+    <div class="loading">Loading memory boxes</div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:3000/api';
+    const SESSION_KEY = 'memoryBox_session';
+    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+    const currentUserId = session?.email;
+
+    // Redirect to login if not logged in
+    if (!session) {
+      window.location.href = 'login.html';
+    }
+
+    function logout() {
+      localStorage.removeItem(SESSION_KEY);
+    }
+
+    function getInitials(name) {
+      return name
+        .split(' ')
+        .map(word => word[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+
+    async function loadUsers() {
+      const grid = document.getElementById('usersGrid');
+      
+      try {
+        const res = await fetch(`${API}/users`);
+        const users = await res.json();
+        
+        // Filter out current user
+        const others = users.filter(u => u.id !== currentUserId);
+        
+        if (others.length === 0) {
+          grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+              No other users yet! 📭<br><br>
+              Invite your friends to sign up and<br>
+              share memories with each other 💌
+            </div>
+          `;
+          return;
+        }
+        
+        grid.innerHTML = others.map(user => `
+          <div class="user-card" onclick="viewBox('${encodeURIComponent(user.id)}')">
+            <div class="user-avatar">${getInitials(user.name)}</div>
+            <div class="user-name">${user.name}</div>
+            <div class="photo-count">
+              📷 ${user.photoCount} ${user.photoCount === 1 ? 'memory' : 'memories'}
+            </div>
+            <div class="view-hint">Click to view →</div>
+          </div>
+        `).join('');
+        
+      } catch (err) {
+        console.error('Failed to load users:', err);
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            Could not load users 😢<br><br>
+            Make sure the server is running:<br>
+            <code style="background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 6px; font-size: 0.85rem;">
+              node server.js
+            </code>
+          </div>
+        `;
+      }
+    }
+
+    function viewBox(userId) {
+      window.location.href = `viewer.html?userId=${userId}`;
+    }
+
+    // Load users when page loads
+    loadUsers();
+  </script>
+</body>
+</html>
+

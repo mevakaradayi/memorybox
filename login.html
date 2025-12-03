@@ -295,91 +295,83 @@
     // Switch tabs (Sign In / Sign Up)
     const tabButtons = document.querySelectorAll('.tab-btn');
     const forms = document.querySelectorAll('.form');
-
+  
     function switchTab(targetId) {
       forms.forEach(form => {
         form.classList.toggle('active', form.id === targetId);
       });
-
       tabButtons.forEach(btn => {
         const target = btn.getAttribute('data-target');
         btn.classList.toggle('active', target === targetId);
       });
     }
-
+  
     tabButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         const targetId = btn.getAttribute('data-target');
         switchTab(targetId);
       });
     });
-
-    // Simple localStorage-based auth (for demo purposes)
-    const USERS_KEY = 'memoryBox_users';
+  
+    const API = 'http://localhost:3000/api';
     const SESSION_KEY = 'memoryBox_session';
-
-    function getUsers() {
-      try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; }
-      catch { return {}; }
-    }
-
-    function saveUsers(users) {
-      localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    }
-
+  
     function setSession(user) {
       localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     }
-
-    function handleAuth(event, type) {
+  
+    async function handleAuth(event, type) {
       event.preventDefault();
       const form = event.target;
       const formData = new FormData(form);
       const email = formData.get('email').toLowerCase().trim();
       const password = formData.get('password');
-
-      const users = getUsers();
-
-      if (type === 'signup') {
-        const name = formData.get('name')?.trim() || 'Friend';
-
-        // Check if user already exists
-        if (users[email]) {
-          alert('An account with this email already exists. Please sign in.');
-          switchTab('login-form');
-          return;
+  
+      try {
+        if (type === 'signup') {
+          const name = formData.get('name')?.trim() || 'Friend';
+  
+          const res = await fetch(`${API}/auth/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, name })
+          });
+  
+          if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || 'Signup failed');
+            return;
+          }
+  
+          const data = await res.json();
+          setSession(data.user);
+          window.location.href = 'memories-page.html';
+  
+        } else {
+          // Login
+          const res = await fetch(`${API}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+  
+          if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || 'Login failed');
+            return;
+          }
+  
+          const data = await res.json();
+          setSession(data.user);
+          window.location.href = 'memories-page.html';
         }
-
-        // Create new user
-        users[email] = { name, password, createdAt: Date.now() };
-        saveUsers(users);
-
-        // Set session and redirect
-        setSession({ email, name });
-        window.location.href = 'memories-page.html';
-
-      } else {
-        // Login
-        const user = users[email];
-
-        if (!user) {
-          alert('No account found with this email. Please sign up first.');
-          switchTab('signup-form');
-          return;
-        }
-
-        if (user.password !== password) {
-          alert('Incorrect password. Please try again.');
-          return;
-        }
-
-        // Set session and redirect
-        setSession({ email, name: user.name });
-        window.location.href = 'memories-page.html';
+      } catch (err) {
+        alert('Server error. Make sure the server is running on localhost:3000');
+        console.error(err);
       }
     }
-
-    // Check if already logged in, redirect to memories page
+  
+    // Check if already logged in
     (function checkExistingSession() {
       const session = localStorage.getItem(SESSION_KEY);
       if (session) {
