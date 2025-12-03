@@ -52,38 +52,39 @@
 
     .photo-card {
       position: absolute;
-      width: 150px;
+      width: 130px;
       background: #fdf6e3;
-      border-radius: 10px;
-      box-shadow: 0 14px 26px rgba(0, 0, 0, 0.7);
-      padding: 4px;
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      padding: 6px;
       pointer-events: auto;
       cursor: pointer;
       opacity: 0;
       transform: scale(0.3) rotate(0deg);
-      transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, left 0.6s ease, top 0.6s ease;
+      transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, left 0.6s ease, top 0.6s ease, z-index 0s;
     }
 
     .photo-card.visible {
       opacity: 1;
       transform: scale(1);
+      z-index: 5;
     }
 
     .photo-card.visible:hover {
-      transform: scale(1.08);
-      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.9);
-      z-index: 20;
+      transform: scale(1.15);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85);
+      z-index: 50 !important;
     }
 
     .photo-card img {
       width: 100%;
-      height: 130px;
+      height: auto;
       object-fit: cover;
-      border-radius: 7px;
+      border-radius: 5px;
     }
 
     .photo-card .caption-preview {
-      font-size: 0.7rem;
+      font-size: 0.6rem;
       color: #2b1708;
       text-align: center;
       margin-top: 4px;
@@ -136,6 +137,38 @@
       max-height: 70vh;
       border-radius: 12px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-images-container {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .modal-images-container img {
+      max-width: 45vw;
+      max-height: 65vh;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-images-container.single img {
+      max-width: 100%;
+      max-height: 70vh;
+    }
+
+    .paired-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #ff6b9d, #c44569);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      margin-bottom: 12px;
     }
 
     .modal-caption-area {
@@ -245,6 +278,125 @@
       transform: scale(1.08) rotate(0deg); 
     }
 
+    /* Pairing Mode Styles */
+    .photo-card.pairing-mode {
+      cursor: crosshair;
+    }
+
+    .photo-card.selected-for-pair {
+      outline: 3px solid #ff6b9d;
+      outline-offset: 3px;
+      box-shadow: 0 0 20px rgba(255, 107, 157, 0.6), 0 12px 22px rgba(0, 0, 0, 0.7);
+    }
+
+    .photo-card.selected-for-pair::after {
+      content: '✓';
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ff6b9d;
+      color: white;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+
+    .pairing-mode-banner {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #ff6b9d, #c44569);
+      color: white;
+      padding: 10px 24px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      z-index: 30;
+      box-shadow: 0 8px 24px rgba(196, 69, 105, 0.5);
+      display: none;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pairing-mode-banner.active {
+      display: flex;
+    }
+
+    .pairing-mode-banner .selection-count {
+      background: rgba(255,255,255,0.25);
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-weight: bold;
+    }
+
+    .pair-btn, .unpair-btn {
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+      background: transparent;
+      border: 1px solid rgba(253,246,227,0.7);
+      color: #fdf6e3;
+      transition: all 0.2s ease;
+    }
+
+    .pair-btn:hover, .unpair-btn:hover {
+      background: rgba(255, 107, 157, 0.2);
+      border-color: #ff6b9d;
+      color: #ff6b9d;
+    }
+
+    .pair-btn.active {
+      background: linear-gradient(135deg, #ff6b9d, #c44569);
+      border: none;
+      color: white;
+    }
+
+    .confirm-pair-btn {
+      background: white;
+      color: #c44569;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+
+    .confirm-pair-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .confirm-pair-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .cancel-pair-btn {
+      background: transparent;
+      color: white;
+      border: 1px solid rgba(255,255,255,0.5);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .cancel-pair-btn:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
     /* Control bar */
     .control-panel {
       position: absolute;
@@ -346,17 +498,29 @@
 
     <div id="photo-layer" class="photo-layer photos-hidden"></div>
 
+    <!-- Pairing Mode Banner -->
+    <div id="pairing-banner" class="pairing-mode-banner">
+      💕 Select 2 photos to pair
+      <span id="selection-count" class="selection-count">0/2</span>
+      <button id="confirm-pair-btn" class="confirm-pair-btn" disabled>Pair Photos</button>
+      <button id="cancel-pair-btn" class="cancel-pair-btn">Cancel</button>
+    </div>
+
     <!-- Photo Modal -->
     <div id="photo-modal" class="photo-modal">
       <div class="modal-content">
         <button class="close-modal" id="close-modal">&times;</button>
-        <img id="modal-image" src="" alt="Photo">
+        <div id="modal-images-container" class="modal-images-container single">
+          <img id="modal-image" src="" alt="Photo">
+        </div>
         <div class="modal-caption-area">
+          <div id="paired-badge" class="paired-badge" style="display: none;">💕 Paired Memory</div>
           <p id="modal-caption" class="modal-caption empty">Click "Add Caption" to add a memory</p>
           <input type="text" id="caption-input" class="caption-input" placeholder="Write your caption...">
           <div class="modal-buttons">
             <button id="edit-caption-btn" class="modal-btn edit-btn">✏️ Add Caption</button>
             <button id="save-caption-btn" class="modal-btn save-btn">💾 Save</button>
+            <button id="unpair-btn" class="modal-btn edit-btn" style="display: none;">💔 Unpair</button>
           </div>
         </div>
       </div>
@@ -370,6 +534,7 @@
       <button id="close-box" class="close-button disabled">Close box</button>
 
       <span id="photo-count">No photos yet.</span>
+      <button id="pair-mode-btn" class="pair-btn">💕 Pair Photos</button>
       <button id="clear-photos" class="clear-button">Clear all</button>
       <a href="browse.html" class="open-button" style="text-decoration: none;">👥 Browse Boxes</a>
     </div>
@@ -406,6 +571,8 @@
   
     let isBoxOpen = false;
     let photosData = []; // Store photo data from server
+    let isPairingMode = false;
+    let selectedForPairing = []; // Photo IDs selected for pairing
   
     // ============ API FUNCTIONS ============
     
@@ -448,6 +615,22 @@
         method: 'DELETE'
       });
     }
+
+    async function updatePhotoGroupOnServer(photoId, groupId) {
+      console.log('Updating photo group:', { photoId, groupId, userId: currentUserId });
+      const res = await fetch(`${API}/photos/${encodeURIComponent(currentUserId)}/${photoId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group: groupId })
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        console.error('Failed to update photo group:', result);
+        throw new Error(result.error || 'Failed to update');
+      }
+      console.log('Photo group updated:', result);
+      return result;
+    }
   
     // ============ UI FUNCTIONS ============
   
@@ -463,6 +646,8 @@
   
       const cards = [...photoLayer.children];
       if (isBoxOpen) {
+        // Sync card states with data before showing
+        syncCardsWithData();
         cards.forEach((card, index) => {
           const angle = +card.dataset.angle;
           const radius = +card.dataset.radius;
@@ -491,6 +676,14 @@
   
       openBoxBtn.classList.toggle("disabled", isBoxOpen || count === 0);
       closeBoxBtn.classList.toggle("disabled", !isBoxOpen);
+      
+      // Show pair button only when box is open with 2+ photos (and viewing own box)
+      if (isOwnBox) {
+        const pairBtn = document.getElementById('pair-mode-btn');
+        if (pairBtn) {
+          pairBtn.classList.toggle("disabled", !isBoxOpen || count < 2);
+        }
+      }
     }
   
     function placeCard(card, angle, radius, animate = false) {
@@ -498,30 +691,48 @@
       const cx = rect.width / 2;
       const cy = rect.height / 2;
       
-      const cardWidth = 150;
-      const cardHeight = 155;
-      const padding = 20;
-      const boxSize = 180;
+      const cardWidth = 120;
+      const cardHeight = 130;
+      const padding = 15;
+      const boxSize = 160;
       
-      const rad = angle * (Math.PI / 180);
-      let x = cx + radius * Math.cos(rad);
-      let y = cy + radius * Math.sin(rad);
+      // Spread photos across the full screen width and height
+      const availableWidth = rect.width - cardWidth - padding * 2;
+      const availableHeight = rect.height - cardHeight - padding * 2 - 180; // Room for nav and controls
       
-      x = Math.max(padding, Math.min(x, rect.width - cardWidth - padding));
-      y = Math.max(padding + 60, Math.min(y, rect.height - cardHeight - padding - 80));
+      // Use angle to spread horizontally across full width
+      const normalizedAngle = ((angle % 360) + 360) % 360;
+      const xRatio = normalizedAngle / 360;
       
+      // Use radius to add vertical variation
+      const yRatio = ((radius * 7) % 100) / 100;
+      
+      let x = padding + xRatio * availableWidth;
+      let y = padding + 70 + yRatio * availableHeight;
+      
+      // Avoid the center box area
       const cardCenterX = x + cardWidth / 2;
       const cardCenterY = y + cardHeight / 2;
       const distFromCenter = Math.sqrt(Math.pow(cardCenterX - cx, 2) + Math.pow(cardCenterY - cy, 2));
       
       if (distFromCenter < boxSize) {
-        const pushAngle = Math.atan2(cardCenterY - cy, cardCenterX - cx);
-        const pushDistance = boxSize + 20;
-        x = cx + pushDistance * Math.cos(pushAngle) - cardWidth / 2;
-        y = cy + pushDistance * Math.sin(pushAngle) - cardHeight / 2;
-        x = Math.max(padding, Math.min(x, rect.width - cardWidth - padding));
-        y = Math.max(padding + 60, Math.min(y, rect.height - cardHeight - padding - 80));
+        // Push to left or right side of the box
+        if (cardCenterX < cx) {
+          x = Math.max(padding, cx - boxSize - cardWidth - 10);
+        } else {
+          x = Math.min(rect.width - cardWidth - padding, cx + boxSize + 10);
+        }
+        // Adjust Y position too
+        y = padding + 70 + ((yRatio + 0.3) % 1) * availableHeight;
       }
+      
+      // Final bounds check
+      x = Math.max(padding, Math.min(x, rect.width - cardWidth - padding));
+      y = Math.max(padding + 70, Math.min(y, rect.height - cardHeight - padding - 130));
+      
+      // Get card index for z-index layering
+      const cardIndex = [...photoLayer.children].indexOf(card);
+      const baseZIndex = 5 + cardIndex;
       
       if (animate) {
         card.style.left = `${cx - cardWidth/2}px`;
@@ -530,45 +741,96 @@
           setTimeout(() => {
             card.style.left = `${x}px`;
             card.style.top = `${y}px`;
+            card.style.zIndex = baseZIndex;
             card.classList.add('visible');
           }, 50);
         });
       } else {
         card.style.left = `${x}px`;
         card.style.top = `${y}px`;
+        card.style.zIndex = baseZIndex;
       }
     }
   
     function createCard(photo, index) {
-      const { id, imageData, angle, radius, caption } = photo;
-  
+      const { id, imageData, angle, radius, caption, group } = photo;
+
       const card = document.createElement("div");
       card.className = `photo-card tilt-${(index % 4) + 1}`;
+      if (group) card.classList.add('paired');
       card.dataset.angle = angle;
       card.dataset.radius = radius;
       card.dataset.id = id;
-  
+      if (group) card.dataset.group = group;
+
       const captionClass = caption ? 'caption-preview' : 'caption-preview empty';
       card.innerHTML = `
         <img src="${imageData}">
         <div class="${captionClass}">${caption || ''}</div>
       `;
       
-      card.addEventListener('click', () => openPhotoModal(id));
-  
+      card.addEventListener('click', () => handlePhotoClick(id));
+
       photoLayer.appendChild(card);
       
       const rect = photoLayer.getBoundingClientRect();
       const cx = rect.width / 2;
       const cy = rect.height / 2;
-      card.style.left = `${cx - 75}px`;
-      card.style.top = `${cy - 77}px`;
+      card.style.left = `${cx - 60}px`;
+      card.style.top = `${cy - 65}px`;
+    }
+
+    function handlePhotoClick(photoId) {
+      if (isPairingMode) {
+        togglePhotoSelection(photoId);
+      } else {
+        openPhotoModal(photoId);
+      }
+    }
+
+    function togglePhotoSelection(photoId) {
+      const index = selectedForPairing.indexOf(photoId);
+      const card = photoLayer.querySelector(`[data-id="${photoId}"]`);
+      
+      if (index > -1) {
+        // Deselect
+        selectedForPairing.splice(index, 1);
+        card?.classList.remove('selected-for-pair');
+      } else if (selectedForPairing.length < 2) {
+        // Select
+        selectedForPairing.push(photoId);
+        card?.classList.add('selected-for-pair');
+      }
+      
+      updatePairingUI();
+    }
+
+    function updatePairingUI() {
+      const count = selectedForPairing.length;
+      document.getElementById('selection-count').textContent = `${count}/2`;
+      document.getElementById('confirm-pair-btn').disabled = count !== 2;
     }
   
     function renderPhotos() {
       photoLayer.innerHTML = '';
       photosData.forEach((photo, index) => createCard(photo, index));
       updateUI();
+    }
+
+    // Re-sync cards with photosData (updates paired status without full re-render)
+    function syncCardsWithData() {
+      photosData.forEach(photo => {
+        const card = photoLayer.querySelector(`[data-id="${photo.id}"]`);
+        if (card) {
+          if (photo.group) {
+            card.classList.add('paired');
+            card.dataset.group = photo.group;
+          } else {
+            card.classList.remove('paired');
+            delete card.dataset.group;
+          }
+        }
+      });
     }
   
     // ============ FILE UPLOAD ============
@@ -610,6 +872,7 @@
   
     closeBoxBtn.addEventListener("click", () => {
       isBoxOpen = false;
+      if (isPairingMode) exitPairingMode();
       updateUI();
     });
   
@@ -635,24 +898,59 @@
     // ============ MODAL ============
   
     const photoModal = document.getElementById('photo-modal');
+    const modalImagesContainer = document.getElementById('modal-images-container');
     const modalImage = document.getElementById('modal-image');
     const modalCaption = document.getElementById('modal-caption');
     const captionInput = document.getElementById('caption-input');
     const editCaptionBtn = document.getElementById('edit-caption-btn');
     const saveCaptionBtn = document.getElementById('save-caption-btn');
     const closeModalBtn = document.getElementById('close-modal');
+    const unpairBtn = document.getElementById('unpair-btn');
+    const pairedBadge = document.getElementById('paired-badge');
     
     let currentPhotoId = null;
-  
+    let currentGroupPhotos = []; // For paired photos
+
     function openPhotoModal(photoId) {
       const photo = photosData.find(p => p.id === photoId);
       if (!photo) return;
       
       currentPhotoId = photoId;
-      modalImage.src = photo.imageData;
       
-      if (photo.caption) {
-        modalCaption.textContent = photo.caption;
+      // Check if this photo is part of a group
+      let groupPhotos = [];
+      if (photo.group) {
+        groupPhotos = photosData.filter(p => p.group === photo.group);
+      }
+      
+      currentGroupPhotos = groupPhotos.length > 1 ? groupPhotos : [photo];
+      
+      // Clear and populate images container
+      modalImagesContainer.innerHTML = '';
+      modalImagesContainer.classList.toggle('single', currentGroupPhotos.length === 1);
+      
+      currentGroupPhotos.forEach(p => {
+        const img = document.createElement('img');
+        img.src = p.imageData;
+        img.alt = p.caption || 'Photo';
+        modalImagesContainer.appendChild(img);
+      });
+      
+      // Show paired badge if grouped
+      const isPaired = currentGroupPhotos.length > 1;
+      pairedBadge.style.display = isPaired ? 'inline-flex' : 'none';
+      
+      // Show unpair button for paired photos (only for own box)
+      if (isOwnBox && isPaired) {
+        unpairBtn.style.display = '';
+      } else {
+        unpairBtn.style.display = 'none';
+      }
+      
+      // Combine captions
+      const captions = currentGroupPhotos.map(p => p.caption).filter(c => c);
+      if (captions.length > 0) {
+        modalCaption.textContent = captions.join(' · ');
         modalCaption.classList.remove('empty');
         editCaptionBtn.textContent = '✏️ Edit Caption';
       } else {
@@ -743,7 +1041,106 @@
     captionInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') saveCaption();
     });
-  
+
+    // ============ PAIRING MODE ============
+
+    const pairModeBtn = document.getElementById('pair-mode-btn');
+    const pairingBanner = document.getElementById('pairing-banner');
+    const confirmPairBtn = document.getElementById('confirm-pair-btn');
+    const cancelPairBtn = document.getElementById('cancel-pair-btn');
+
+    function enterPairingMode() {
+      if (!isBoxOpen || photosData.length < 2) {
+        alert('Open your box first and ensure you have at least 2 photos to pair!');
+        return;
+      }
+      
+      isPairingMode = true;
+      selectedForPairing = [];
+      pairModeBtn.classList.add('active');
+      pairingBanner.classList.add('active');
+      
+      // Add pairing-mode class to all cards
+      [...photoLayer.children].forEach(card => {
+        card.classList.add('pairing-mode');
+      });
+      
+      updatePairingUI();
+    }
+
+    function exitPairingMode() {
+      isPairingMode = false;
+      selectedForPairing = [];
+      pairModeBtn.classList.remove('active');
+      pairingBanner.classList.remove('active');
+      
+      // Remove selection and pairing-mode classes
+      [...photoLayer.children].forEach(card => {
+        card.classList.remove('pairing-mode', 'selected-for-pair');
+      });
+    }
+
+    async function confirmPairing() {
+      if (selectedForPairing.length !== 2) return;
+      
+      const groupId = `pair_${Date.now()}`;
+      console.log('Pairing photos:', selectedForPairing, 'with groupId:', groupId);
+      
+      let successCount = 0;
+      
+      // Update both photos with the same group
+      for (const photoId of selectedForPairing) {
+        try {
+          const updatedPhoto = await updatePhotoGroupOnServer(photoId, groupId);
+          
+          // Update local data with server response to ensure sync
+          const photo = photosData.find(p => p.id === photoId);
+          if (photo) {
+            photo.group = updatedPhoto.group || groupId;
+            successCount++;
+          }
+        } catch (err) {
+          console.error('Failed to pair photo:', err);
+          alert('Failed to pair photos. Please try again.');
+        }
+      }
+      
+      if (successCount === 2) {
+        console.log('Pairing successful!');
+      }
+      
+      // Sync all cards with updated data
+      syncCardsWithData();
+      exitPairingMode();
+    }
+
+    async function unpairPhotos() {
+      if (currentGroupPhotos.length < 2) return;
+      
+      // Remove group from all photos in the current group
+      for (const photo of currentGroupPhotos) {
+        try {
+          await updatePhotoGroupOnServer(photo.id, null);
+          
+          // Update local data
+          photo.group = null;
+        } catch (err) {
+          console.error('Failed to unpair photo:', err);
+        }
+      }
+      
+      // Sync all cards with updated data
+      syncCardsWithData();
+      
+      // Close modal
+      closePhotoModal();
+    }
+
+    pairModeBtn.addEventListener('click', enterPairingMode);
+    cancelPairBtn.addEventListener('click', exitPairingMode);
+    confirmPairBtn.addEventListener('click', confirmPairing);
+    unpairBtn.addEventListener('click', unpairPhotos);
+
     // ============ INIT ============
   
     window.addEventListener("DOMContentLoaded", async () => {
@@ -760,6 +1157,7 @@
         document.getElementById('upload-label').style.display = 'none';
         document.getElementById('photo-input').style.display = 'none';
         document.getElementById('clear-photos').style.display = 'none';
+        document.getElementById('pair-mode-btn').style.display = 'none';
       }
       
       // Load photos from server
@@ -767,7 +1165,5 @@
       renderPhotos();
     });
   </script>
-</script>
-
 </body>
 </html>

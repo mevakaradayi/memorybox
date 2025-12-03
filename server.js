@@ -88,18 +88,25 @@ app.post('/api/photos/:userId', (req, res) => {
   res.json(photo);
 });
 
-// Update a photo (caption)
+// Update a photo (caption or group)
 app.patch('/api/photos/:userId/:photoId', (req, res) => {
+  console.log('PATCH photo:', { userId: req.params.userId, photoId: req.params.photoId, body: req.body });
+  
   const data = getData();
   const userId = decodeURIComponent(req.params.userId);
   const photos = data.photos[userId] || [];
   const photo = photos.find(p => p.id === req.params.photoId);
   
+  console.log('Found photo:', photo ? 'yes' : 'no', 'Photo IDs:', photos.map(p => p.id));
+  
   if (photo) {
     if (req.body.caption !== undefined) photo.caption = req.body.caption;
+    if (req.body.group !== undefined) photo.group = req.body.group;
+    console.log('Updated photo group to:', photo.group);
     saveData(data);
     res.json(photo);
   } else {
+    console.log('Photo not found!');
     res.status(404).json({ error: 'Photo not found' });
   }
 });

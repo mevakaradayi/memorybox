@@ -93,9 +93,18 @@
 
     .memory-photo {
       position: absolute;
+      width: 130px;
+      height: auto;
       opacity: 0;
       pointer-events: none;
       transform: translate(-50%, -50%) scale(0.2);
+      background: #fdf6e3;
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      padding: 6px;
+      cursor: pointer;
+      object-fit: cover;
+      transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, z-index 0s;
     }
 
     /* when box is open, show photos & allow clicks */
@@ -103,24 +112,38 @@
       pointer-events: auto;
     }
 
-    @media (min-width: 900px) {
-      .memory-photo { width: 160px; }
+    .memory-photos.active .memory-photo:hover {
+      transform: translate(-50%, -50%) scale(1.15);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85);
+      z-index: 50 !important;
     }
+
+    /* Paired photo styling */
+    .memory-photo.paired {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 107, 157, 0.5);
+    }
+
+    .memory-photos.active .memory-photo.paired:hover {
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85), 0 0 15px rgba(255, 107, 157, 0.6);
+    }
+
 
     /* Close box button */
     #closeButton {
       position: fixed;
       top: 20px;
       right: 24px;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 8px;
-      color: #fff;
-      padding: 8px 12px;
-      font-size: 14px;
-      cursor: pointer;
+      color: #ffcf71;
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 207, 113, 0.4);
+      background: rgba(5, 5, 18, 0.8);
       backdrop-filter: blur(6px);
-      transition: background 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease, opacity 0.25s ease;
       opacity: 0;
       pointer-events: none;
       z-index: 20;
@@ -132,8 +155,8 @@
     }
 
     #closeButton:hover {
-      background: rgba(255, 255, 255, 0.25);
-      transform: scale(1.05);
+      background: rgba(255, 207, 113, 0.15);
+      border-color: #ffcf71;
     }
 
     /* modal backdrop */
@@ -157,17 +180,18 @@
 
     /* modal card */
     .photo-modal {
-      background: rgba(0, 0, 0, 0.92);
-      border-radius: 24px;
-      padding: 22px 24px 18px;
-      max-width: min(80vw, 600px);
-      max-height: 80vh;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
       position: relative;
+      max-width: 90vw;
+      max-height: 85vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow: hidden;
+      animation: modalZoom 0.3s ease;
+    }
+
+    @keyframes modalZoom {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
 
     .photo-modal-images {
@@ -175,39 +199,95 @@
       flex-wrap: wrap;
       gap: 12px;
       justify-content: center;
-      max-height: 60vh;
+      max-height: 75vh;
       overflow-y: auto;
-      margin-top: 4px;
-      padding-right: 4px;
     }
 
     .photo-modal-images img {
-      max-width: min(48%, 260px);
-      max-height: 40vh;
-      border-radius: 16px;
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
       display: block;
     }
 
     .photo-modal-close {
       position: absolute;
-      top: 10px;
-      right: 12px;
+      top: 20px;
+      right: 20px;
       border: none;
-      background: transparent;
+      background: rgba(0, 0, 0, 0.5);
       color: #fdf6e3;
-      font-size: 20px;
+      font-size: 24px;
       cursor: pointer;
+      padding: 8px 14px;
+      border-radius: 50%;
+      transition: background 0.2s ease;
+      z-index: 10;
+    }
+
+    .photo-modal-close:hover {
+      background: rgba(0, 0, 0, 0.8);
     }
 
     #photoModalCaption {
-      margin-top: 10px;
-      font-size: 14px;
-      opacity: 0.9;
+      margin-top: 16px;
+      font-size: 1.1rem;
+      color: #fdf6e3;
       text-align: center;
+      max-width: 500px;
+    }
+
+    .paired-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #ff6b9d, #c44569);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+    }
+
+    /* Navigation bar */
+    .nav-bar {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 25;
+    }
+
+    .nav-link {
+      color: #ffcf71;
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 207, 113, 0.4);
+      background: rgba(5, 5, 18, 0.8);
+      backdrop-filter: blur(6px);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 207, 113, 0.15);
+      border-color: #ffcf71;
     }
   </style>
 </head>
 <body>
+
+  <!-- Navigation -->
+  <nav class="nav-bar">
+    <a href="memories-page.html" class="nav-link">📦 My Box</a>
+    <a href="browse.html" class="nav-link">👥 Browse</a>
+    <a href="login.html" class="nav-link" onclick="localStorage.removeItem('memoryBox_session')">🚪 Logout</a>
+  </nav>
 
   <!-- BOX + TITLE -->
   <div class="memory-box-wrapper" id="memoryBox">
@@ -235,6 +315,7 @@
       <button id="photoModalClose" class="photo-modal-close">✕</button>
 
       <div id="photoModalImages" class="photo-modal-images"></div>
+      <div id="pairedBadge" class="paired-badge" style="display: none;">💕 Paired Memory</div>
       <p id="photoModalCaption"></p>
     </div>
   </div>
@@ -297,10 +378,11 @@
       photosData.forEach((photoData, index) => {
         const img = document.createElement('img');
         img.src = photoData.imageData;
-        img.alt = photoData.caption || `Photo ${index + 1}`;
+        img.alt = photoData.caption || '';
         img.className = 'memory-photo';
         if (photoData.group) {
           img.dataset.group = photoData.group;
+          img.classList.add('paired');
         }
         photosContainer.appendChild(img);
         photos.push(img);
@@ -330,19 +412,33 @@
       }
   
       // ---- MODAL LOGIC ----
+      const pairedBadge = document.getElementById('pairedBadge');
+      
       function openPhotoModal(set) {
         modalImages.innerHTML = "";
         const captions = [];
-  
+
         set.forEach((p) => {
           const img = document.createElement("img");
           img.src = p.src;
           img.alt = p.alt || "";
-          if (img.alt && img.alt !== 'Photo') captions.push(img.alt);
+          if (p.alt && p.alt.trim() !== '') {
+            captions.push(p.alt);
+          }
           modalImages.appendChild(img);
         });
-  
-        modalCap.textContent = captions.join(" · ");
+
+        // Show paired badge if multiple photos
+        pairedBadge.style.display = set.length > 1 ? 'inline-flex' : 'none';
+
+        // Only show caption area if there are actual captions
+        if (captions.length > 0) {
+          modalCap.textContent = captions.join(" · ");
+          modalCap.style.display = 'block';
+        } else {
+          modalCap.textContent = '';
+          modalCap.style.display = 'none';
+        }
         modal.classList.add("visible");
       }
   
@@ -411,56 +507,66 @@
         const vw = window.innerWidth;
         const vh = window.innerHeight;
   
-        const margin = 80;
-        const minR = Math.max(rect.width, rect.height) * 0.9;
-        const maxR = Math.min(vw, vh) * 0.7;
+        const margin = 40;
+        const minR = Math.min(vw, vh) * 0.28;
+        const maxR = Math.max(vw, vh) * 0.45;
   
-        photoUnits.forEach((unit, unitIndex) => {
-          const baseT = unitIndex / photoUnits.length;
-          const jitter = (Math.random() - 0.5) * (1 / photoUnits.length);
-          const t = baseT + jitter;
-          const angle = t * Math.PI * 2;
-  
-          const radius = randomBetween(minR, maxR);
-  
-          let targetX = centerX + radius * Math.cos(angle);
-          let targetY = centerY + radius * Math.sin(angle);
-  
-          targetX = Math.min(vw - margin, Math.max(margin, targetX));
-          targetY = Math.min(vh - margin, Math.max(margin, targetY));
-  
-          const baseRotation = randomBetween(-25, 25);
-          const delay = unitIndex * 90;
-          const spread = 30;
-  
-          unit.photos.forEach((photo, idx) => {
-            const offsetAngle = (idx - (unit.photos.length - 1) / 2) * 0.25;
-            const offsetX = Math.cos(offsetAngle) * spread * idx;
-            const offsetY = Math.sin(offsetAngle) * spread * idx;
-  
-            photo.style.left = centerX + "px";
-            photo.style.top  = centerY + "px";
-            photo.style.transition = "none";
-            photo.style.opacity = 0;
-            photo.style.transform = "translate(-50%, -50%) scale(0.2)";
-  
+      photoUnits.forEach((unit, unitIndex) => {
+        const baseT = unitIndex / photoUnits.length;
+        const jitter = (Math.random() - 0.5) * (1 / photoUnits.length);
+        const t = baseT + jitter;
+        const angle = t * Math.PI * 2;
+
+        const radius = randomBetween(minR, maxR);
+
+        let targetX = centerX + radius * Math.cos(angle);
+        let targetY = centerY + radius * Math.sin(angle);
+
+        targetX = Math.min(vw - margin, Math.max(margin, targetX));
+        targetY = Math.min(vh - margin, Math.max(margin, targetY));
+
+        const baseRotation = randomBetween(-25, 25);
+        const delay = unitIndex * 90;
+        const isPaired = unit.photos.length > 1;
+
+        unit.photos.forEach((photo, idx) => {
+          // For paired photos, stack them with slight offset to show they're together
+          // First photo is base, subsequent ones offset slightly to create a stack effect
+          const stackOffset = isPaired ? 12 : 0;
+          const offsetX = idx * stackOffset;
+          const offsetY = idx * stackOffset;
+          
+          // Rotate paired photos slightly differently to show stacking
+          const rotationOffset = isPaired ? (idx - 0.5) * 8 : 0;
+          const photoRotation = baseRotation + rotationOffset;
+          
+          // Give each photo a unique z-index for proper layering (paired photos stack)
+          const photoZIndex = 5 + unitIndex * 2 + idx;
+
+          photo.style.left = centerX + "px";
+          photo.style.top  = centerY + "px";
+          photo.style.transition = "none";
+          photo.style.opacity = 0;
+          photo.style.transform = "translate(-50%, -50%) scale(0.2)";
+          photo.style.zIndex = photoZIndex;
+
+          requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                photo.style.transition =
-                  `left 0.9s ease-out ${delay}ms, ` +
-                  `top 0.9s ease-out ${delay}ms, ` +
-                  `transform 0.9s ease-out ${delay}ms, ` +
-                  `opacity 0.9s ease-out ${delay}ms`;
-  
-                photo.style.left = (targetX + offsetX) + "px";
-                photo.style.top  = (targetY + offsetY) + "px";
-                photo.style.opacity = 1;
-                photo.style.transform =
-                  `translate(-50%, -50%) scale(1) rotate(${baseRotation}deg)`;
-              });
+              photo.style.transition =
+                `left 0.9s ease-out ${delay}ms, ` +
+                `top 0.9s ease-out ${delay}ms, ` +
+                `transform 0.9s ease-out ${delay}ms, ` +
+                `opacity 0.9s ease-out ${delay}ms`;
+
+              photo.style.left = (targetX + offsetX) + "px";
+              photo.style.top  = (targetY + offsetY) + "px";
+              photo.style.opacity = 1;
+              photo.style.transform =
+                `translate(-50%, -50%) scale(1) rotate(${photoRotation}deg)`;
             });
           });
         });
+      });
       }
   
       function randomBetween(min, max) {
