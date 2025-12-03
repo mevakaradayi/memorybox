@@ -567,27 +567,16 @@
       pointer-events: none;
     }
 
-    .clear-button {
-      padding: 10px 18px;
-      border-radius: 4px;
-      font-family: 'Cormorant Garamond', serif;
-      cursor: pointer;
-      white-space: nowrap;
+    .modal-btn.delete-btn {
       background: transparent;
       border: 1px solid var(--dusty-pink);
       color: var(--text-muted);
-      transition: all 0.2s ease;
     }
 
-    .clear-button:hover {
+    .modal-btn.delete-btn:hover {
       border-color: #c44569;
       color: #c44569;
-    }
-
-    #photo-count {
-      font-family: 'Pinyon Script', cursive;
-      font-size: 1.1rem;
-      color: var(--burgundy);
+      background: rgba(196, 69, 105, 0.05);
     }
 
     .empty-state-bubble {
@@ -609,8 +598,8 @@
 
     .greeting {
       position: absolute;
-      top: 24px;
-      left: 28px;
+      top: 36px;
+      left: 72px;
       font-family: 'Pinyon Script', cursive;
       font-size: 1.8rem;
       color: var(--burgundy);
@@ -619,7 +608,7 @@
 
     .browse-link {
       position: absolute;
-      top: 66px;
+      top: 80px;
       right: 28px;
       z-index: 10;
       padding: 10px 20px;
@@ -682,9 +671,9 @@
 
     <!-- Pairing Mode Banner -->
     <div id="pairing-banner" class="pairing-mode-banner">
-      💕 Select photos to pair
+      💕 Select memories to pair
       <span id="selection-count" class="selection-count">0 selected</span>
-      <button id="confirm-pair-btn" class="confirm-pair-btn" disabled>Pair Photos</button>
+      <button id="confirm-pair-btn" class="confirm-pair-btn" disabled>Pair Memories</button>
       <button id="cancel-pair-btn" class="cancel-pair-btn">Cancel</button>
     </div>
 
@@ -696,28 +685,27 @@
           <img id="modal-image" src="" alt="Photo">
         </div>
         <div class="modal-caption-area">
-          <div id="paired-badge" class="paired-badge" style="display: none;">💕 Paired Memory</div>
+          <div id="paired-badge" class="paired-badge" style="display: none;">💕 Paired Memories</div>
           <p id="modal-caption" class="modal-caption empty">Click "Add Caption" to add a memory</p>
           <input type="text" id="caption-input" class="caption-input" placeholder="Write your caption...">
           <div class="modal-buttons">
             <button id="edit-caption-btn" class="modal-btn edit-btn">✏️ Add Caption</button>
             <button id="save-caption-btn" class="modal-btn save-btn">💾 Save</button>
             <button id="unpair-btn" class="modal-btn edit-btn" style="display: none;">💔 Unpair</button>
+            <button id="delete-photo-btn" class="modal-btn delete-btn">🗑️ Delete</button>
           </div>
         </div>
       </div>
     </div>
 
     <div class="control-panel">
-      <label for="photo-input" class="upload-button" id="upload-label">+ Add photos</label>
+      <label for="photo-input" class="upload-button" id="upload-label">+ Add memories</label>
       <input id="photo-input" type="file" accept="image/*" multiple>
 
       <button id="open-box" class="open-button">Open box</button>
       <button id="close-box" class="close-button disabled">Close box</button>
 
-      <span id="photo-count">No photos yet</span>
-      <button id="pair-mode-btn" class="pair-btn">💕 Pair Photos</button>
-      <button id="clear-photos" class="clear-button">Clear all</button>
+      <button id="pair-mode-btn" class="pair-btn">💕 Pair Memories</button>
     </div>
   </div>
 
@@ -744,8 +732,6 @@
     const boxImage       = document.getElementById("box-image");
     const photoLayer     = document.getElementById("photo-layer");
     const input          = document.getElementById("photo-input");
-    const clearBtn       = document.getElementById("clear-photos");
-    const photoCountLabel= document.getElementById("photo-count");
     const emptyState     = document.getElementById("empty-state");
     const openBoxBtn     = document.getElementById("open-box");
     const closeBoxBtn    = document.getElementById("close-box");
@@ -818,10 +804,6 @@
     function updateUI() {
       const count = photosData.length;
   
-      photoCountLabel.textContent = count
-        ? `${count} photo${count > 1 ? "s" : ""}`
-        : "No photos yet";
-  
       boxImage.src = isBoxOpen ? "Images/box-open.png" : "Images/box-close.png";
       boxImage.classList.toggle("box-open", isBoxOpen);
       photoLayer.classList.toggle("photos-hidden", !isBoxOpen);
@@ -848,9 +830,10 @@
           : `${displayOwnerName}'s box is empty 📦`;
         emptyState.classList.remove("hidden");
       } else if (!isBoxOpen) {
+        const memoryWord = count === 1 ? "memory" : "memories";
         emptyState.textContent = isOwnBox
-          ? "You have memories inside… open your box ✨"
-          : `${displayOwnerName} has memories inside… open the box ✨`;
+          ? `You have ${count} ${memoryWord}… open your box ✨`
+          : `${displayOwnerName} has ${count} ${memoryWord}… open the box ✨`;
         emptyState.classList.remove("hidden");
       } else {
         emptyState.classList.add("hidden");
@@ -1088,16 +1071,6 @@
       updateUI();
     });
   
-    clearBtn.addEventListener("click", async () => {
-      if (confirm("Clear all photos?")) {
-        await clearAllPhotosOnServer();
-        photosData = [];
-        photoLayer.innerHTML = "";
-        isBoxOpen = false;
-        updateUI();
-      }
-    });
-  
     window.addEventListener("resize", () => {
       if (isBoxOpen) {
         [...photoLayer.children].forEach(card => {
@@ -1119,6 +1092,7 @@
     const closeModalBtn = document.getElementById('close-modal');
     const unpairBtn = document.getElementById('unpair-btn');
     const pairedBadge = document.getElementById('paired-badge');
+    const deletePhotoBtn = document.getElementById('delete-photo-btn');
     
     let currentPhotoId = null;
     let currentGroupPhotos = []; // For paired photos
@@ -1160,8 +1134,8 @@
       if (isPaired) {
         pairedBadge.style.display = 'inline-flex';
         pairedBadge.textContent = currentGroupPhotos.length === 2 
-          ? '💕 Paired Memory' 
-          : `💕 ${currentGroupPhotos.length} Photos Paired`;
+          ? '💕 Paired Memories' 
+          : `💕 ${currentGroupPhotos.length} Memories Paired`;
       } else {
         pairedBadge.style.display = 'none';
       }
@@ -1189,8 +1163,10 @@
         editCaptionBtn.style.display = 'none';
         captionInput.style.display = 'none';
         saveCaptionBtn.style.display = 'none';
+        deletePhotoBtn.style.display = 'none';
       } else {
         editCaptionBtn.style.display = '';
+        deletePhotoBtn.style.display = '';
       }
       
       captionInput.classList.remove('active');
@@ -1363,10 +1339,46 @@
       closePhotoModal();
     }
 
+    async function deletePhoto() {
+      if (!currentPhotoId) return;
+      
+      const confirmMsg = currentGroupPhotos.length > 1 
+        ? `Delete this memory? (The paired memories will be unpaired)` 
+        : 'Delete this memory?';
+      
+      if (!confirm(confirmMsg)) return;
+      
+      // Delete from server
+      await deletePhotoFromServer(currentPhotoId);
+      
+      // Remove from local data
+      const index = photosData.findIndex(p => p.id === currentPhotoId);
+      if (index > -1) {
+        photosData.splice(index, 1);
+      }
+      
+      // Remove card from DOM
+      const card = photoLayer.querySelector(`[data-id="${currentPhotoId}"]`);
+      if (card) {
+        card.remove();
+      }
+      
+      // Close modal and update UI
+      closePhotoModal();
+      
+      // If box is now empty, close it
+      if (photosData.length === 0) {
+        isBoxOpen = false;
+      }
+      
+      updateUI();
+    }
+
     pairModeBtn.addEventListener('click', enterPairingMode);
     cancelPairBtn.addEventListener('click', exitPairingMode);
     confirmPairBtn.addEventListener('click', confirmPairing);
     unpairBtn.addEventListener('click', unpairPhotos);
+    deletePhotoBtn.addEventListener('click', deletePhoto);
 
     // ============ LOGOUT ============
 
@@ -1392,7 +1404,6 @@
         // Hide edit controls
         document.getElementById('upload-label').style.display = 'none';
         document.getElementById('photo-input').style.display = 'none';
-        document.getElementById('clear-photos').style.display = 'none';
         document.getElementById('pair-mode-btn').style.display = 'none';
       }
       
