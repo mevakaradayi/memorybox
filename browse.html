@@ -284,6 +284,114 @@
       .users-grid { gap: 20px; }
       .user-card { padding: 24px 18px; }
     }
+
+    /* User Search bar */
+    .search-container {
+      max-width: 1000px;
+      margin: 0 auto 32px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .search-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 14px 48px 14px 20px;
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 1.05rem;
+      color: var(--text-dark);
+      background: var(--cream-light);
+      border: 1px solid var(--dusty-pink);
+      border-radius: 30px;
+      outline: none;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 12px rgba(114, 47, 55, 0.08);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .search-input:focus {
+      border-color: var(--burgundy);
+      box-shadow: 0 4px 20px rgba(114, 47, 55, 0.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 18px;
+      color: var(--dusty-pink);
+      font-size: 1.2rem;
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+
+    .search-input:focus + .search-icon {
+      color: var(--burgundy);
+    }
+
+    .search-clear {
+      position: absolute;
+      right: 44px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, color 0.2s ease;
+    }
+
+    .search-clear.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .search-clear:hover {
+      color: var(--burgundy);
+    }
+
+    .search-results-info {
+      text-align: center;
+      margin-top: 12px;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .search-results-info.visible {
+      opacity: 1;
+    }
+
+    .user-card.search-hidden {
+      display: none;
+    }
+
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .no-results-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
   </style>
 </head>
 <body>
@@ -298,6 +406,22 @@
     <a href="profile.html" class="nav-link">Profile</a>
     <a href="login.html" class="nav-link" id="logoutLink" onclick="logout()">Logout</a>
   </nav>
+
+  <!-- User Search Bar -->
+  <div class="search-container">
+    <div class="search-wrapper">
+      <input 
+        type="text" 
+        class="search-input" 
+        id="searchInput" 
+        placeholder="Search for a user..."
+        autocomplete="off"
+      >
+      <button class="search-clear" id="searchClear">✕</button>
+      <span class="search-icon">⌕</span>
+    </div>
+    <div class="search-results-info" id="searchResultsInfo"></div>
+  </div>
   
   <div class="users-grid" id="usersGrid">
     <div class="loading">Loading memory boxes</div>
@@ -360,7 +484,7 @@
             </div>
             <div class="user-name">${user.name}</div>
             <div class="photo-count">
-              📷 ${user.photoCount} ${user.photoCount === 1 ? 'memory' : 'memories'}
+              ${user.photoCount} ${user.photoCount === 1 ? 'memory' : 'memories'}
             </div>
             <div class="view-hint">click to view →</div>
           </div>
@@ -384,6 +508,74 @@
     function viewBox(userId) {
       window.location.href = `viewer.html?userId=${userId}`;
     }
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const searchClear = document.getElementById('searchClear');
+    const searchResultsInfo = document.getElementById('searchResultsInfo');
+    let allUserCards = [];
+
+    function performSearch(query) {
+      const searchTerm = query.toLowerCase().trim();
+      const cards = document.querySelectorAll('.user-card');
+      let matchCount = 0;
+      const totalCount = cards.length;
+
+      // Remove any existing no-results message
+      const existingNoResults = document.querySelector('.no-results');
+      if (existingNoResults) existingNoResults.remove();
+
+      cards.forEach(card => {
+        const userName = card.querySelector('.user-name')?.textContent.toLowerCase() || '';
+        const matches = searchTerm === '' || userName.includes(searchTerm);
+        
+        if (matches) {
+          card.classList.remove('search-hidden');
+          matchCount++;
+        } else {
+          card.classList.add('search-hidden');
+        }
+      });
+
+      // Update UI based on search state
+      if (searchTerm.length > 0) {
+        searchClear.classList.add('visible');
+        searchResultsInfo.textContent = `Showing ${matchCount} of ${totalCount} users`;
+        searchResultsInfo.classList.add('visible');
+
+        // Show no results message if needed
+        if (matchCount === 0 && totalCount > 0) {
+          const grid = document.getElementById('usersGrid');
+          const noResults = document.createElement('div');
+          noResults.className = 'no-results';
+          noResults.innerHTML = `
+            <div class="no-results-icon">🔍</div>
+            No users found matching "${query}"
+          `;
+          grid.appendChild(noResults);
+        }
+      } else {
+        searchClear.classList.remove('visible');
+        searchResultsInfo.classList.remove('visible');
+      }
+    }
+
+    searchInput.addEventListener('input', (e) => {
+      performSearch(e.target.value);
+    });
+
+    searchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      performSearch('');
+      searchInput.focus();
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && searchInput.value) {
+        searchInput.value = '';
+        performSearch('');
+      }
+    });
 
     // Load users when page loads
     loadUsers();
