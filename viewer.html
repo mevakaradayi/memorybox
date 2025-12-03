@@ -560,11 +560,7 @@
         const cardWidth = 140;
         const cardHeight = 120;
         const padding = 20;
-        
-        // Get actual box size from the DOM (400px default, but can be smaller on mobile)
-        const boxRect = boxWrapper.getBoundingClientRect();
-        const boxExclusionWidth = boxRect.width / 2 + 40; // Half box width + padding
-        const boxExclusionHeight = boxRect.height / 2 + 40; // Half box height + padding
+        const boxSize = 140;
         
         // Calculate grid dimensions with overlap - looser spacing
         const overlapX = 40; // How much cards overlap horizontally
@@ -594,50 +590,17 @@
         x += jitterX;
         y += jitterY;
         
-        // Check if card overlaps with the center box area (using rectangular exclusion zone)
-        const cardLeft = x;
-        const cardRight = x + cardWidth;
-        const cardTop = y;
-        const cardBottom = y + cardHeight;
+        // Avoid the center box area (circular exclusion like memories-page)
+        const cardCenterX = x + cardWidth / 2;
+        const cardCenterY = y + cardHeight / 2;
+        const distFromCenter = Math.sqrt(Math.pow(cardCenterX - cx, 2) + Math.pow(cardCenterY - cy, 2));
         
-        const boxLeft = cx - boxExclusionWidth;
-        const boxRight = cx + boxExclusionWidth;
-        const boxTop = cy - boxExclusionHeight;
-        const boxBottom = cy + boxExclusionHeight;
-        
-        // Check if card overlaps with box exclusion zone
-        const overlapsBox = !(cardRight < boxLeft || cardLeft > boxRight || cardBottom < boxTop || cardTop > boxBottom);
-        
-        if (overlapsBox) {
-          // Push card away from center - find which edge is closest and push past it
-          const cardCenterX = x + cardWidth / 2;
-          const cardCenterY = y + cardHeight / 2;
-          
-          // Calculate distances to each edge of the exclusion zone
-          const distToLeft = cardRight - boxLeft;
-          const distToRight = boxRight - cardLeft;
-          const distToTop = cardBottom - boxTop;
-          const distToBottom = boxBottom - cardTop;
-          
-          // Find the smallest push distance
-          const minHorizontal = Math.min(distToLeft, distToRight);
-          const minVertical = Math.min(distToTop, distToBottom);
-          
-          if (minHorizontal < minVertical) {
-            // Push horizontally
-            if (cardCenterX < cx) {
-              x = boxLeft - cardWidth - 10; // Push to left of box
-            } else {
-              x = boxRight + 10; // Push to right of box
-            }
-          } else {
-            // Push vertically
-            if (cardCenterY < cy) {
-              y = boxTop - cardHeight - 10; // Push above box
-            } else {
-              y = boxBottom + 10; // Push below box
-            }
-          }
+        if (distFromCenter < boxSize + 30) {
+          // Push away from center box
+          const angle = Math.atan2(cardCenterY - cy, cardCenterX - cx);
+          const pushDist = boxSize + 40 - distFromCenter;
+          x += Math.cos(angle) * pushDist;
+          y += Math.sin(angle) * pushDist;
         }
         
         // Wrap around if going off screen
