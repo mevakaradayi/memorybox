@@ -52,33 +52,32 @@
 
     .photo-card {
       position: absolute;
-      width: 130px;
+      width: 140px;
       background: #fdf6e3;
-      border-radius: 8px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      border-radius: 7px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
       padding: 6px;
       pointer-events: auto;
       cursor: pointer;
       opacity: 0;
       transform: scale(0.3) rotate(0deg);
-      transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, left 0.6s ease, top 0.6s ease, z-index 0s;
+      transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, left 0.5s ease, top 0.5s ease, z-index 0s;
     }
 
     .photo-card.visible {
       opacity: 1;
       transform: scale(1);
-      z-index: 5;
     }
 
     .photo-card.visible:hover {
-      transform: scale(1.15);
+      transform: scale(1.6);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85);
-      z-index: 50 !important;
+      z-index: 100 !important;
     }
 
     .photo-card img {
       width: 100%;
-      height: auto;
+      height: 100px;
       object-fit: cover;
       border-radius: 5px;
     }
@@ -92,6 +91,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       opacity: 0.8;
+      line-height: 1.2;
     }
 
     .photo-card .caption-preview.empty {
@@ -277,17 +277,21 @@
       opacity: 1;
     }
 
-    /* tilt - applied when visible */
-    .photo-card.visible.tilt-1 { transform: scale(1) rotate(-4deg); }
-    .photo-card.visible.tilt-2 { transform: scale(1) rotate(3deg); }
-    .photo-card.visible.tilt-3 { transform: scale(1) rotate(-2deg); }
-    .photo-card.visible.tilt-4 { transform: scale(1) rotate(2deg); }
+    /* tilt - applied when visible - more variety for loose feel */
+    .photo-card.visible.tilt-1 { transform: scale(1) rotate(-8deg); }
+    .photo-card.visible.tilt-2 { transform: scale(1) rotate(7deg); }
+    .photo-card.visible.tilt-3 { transform: scale(1) rotate(-4deg); }
+    .photo-card.visible.tilt-4 { transform: scale(1) rotate(5deg); }
+    .photo-card.visible.tilt-5 { transform: scale(1) rotate(-10deg); }
+    .photo-card.visible.tilt-6 { transform: scale(1) rotate(3deg); }
     
     .photo-card.visible.tilt-1:hover,
     .photo-card.visible.tilt-2:hover,
     .photo-card.visible.tilt-3:hover,
-    .photo-card.visible.tilt-4:hover { 
-      transform: scale(1.08) rotate(0deg); 
+    .photo-card.visible.tilt-4:hover,
+    .photo-card.visible.tilt-5:hover,
+    .photo-card.visible.tilt-6:hover { 
+      transform: scale(1.6) rotate(0deg); 
     }
 
     /* Pairing Mode Styles */
@@ -749,47 +753,69 @@
       const cx = rect.width / 2;
       const cy = rect.height / 2;
       
-      const cardWidth = 120;
-      const cardHeight = 130;
-      const padding = 15;
-      const boxSize = 160;
+      const cardWidth = 140;
+      const cardHeight = 120;
+      const padding = 20;
+      const boxSize = 140;
       
-      // Spread photos across the full screen width and height
-      const availableWidth = rect.width - cardWidth - padding * 2;
-      const availableHeight = rect.height - cardHeight - padding * 2 - 180; // Room for nav and controls
+      // Get card index for ordered positioning
+      const cardIndex = [...photoLayer.children].indexOf(card);
+      const totalCards = photoLayer.children.length;
       
-      // Use angle to spread horizontally across full width
-      const normalizedAngle = ((angle % 360) + 360) % 360;
-      const xRatio = normalizedAngle / 360;
+      // Calculate grid dimensions with overlap - looser spacing
+      const overlapX = 40; // How much cards overlap horizontally
+      const overlapY = 15; // How much cards overlap vertically - more space between rows
+      const effectiveCardWidth = cardWidth - overlapX;
+      const effectiveCardHeight = cardHeight - overlapY;
       
-      // Use radius to add vertical variation
-      const yRatio = ((radius * 7) % 100) / 100;
+      // Calculate how many cards fit per row with overlap
+      const availableWidth = rect.width - padding * 2 - cardWidth;
+      const availableHeight = rect.height - padding * 2 - 150 - cardHeight; // Room for nav and controls
       
-      let x = padding + xRatio * availableWidth;
-      let y = padding + 70 + yRatio * availableHeight;
+      const cardsPerRow = Math.max(4, Math.floor(availableWidth / effectiveCardWidth) + 1);
+      
+      // Position in cascading order
+      const row = Math.floor(cardIndex / cardsPerRow);
+      const col = cardIndex % cardsPerRow;
+      
+      // Alternate row starting position for more natural cascade
+      const rowOffset = (row % 2) * (effectiveCardWidth * 0.6);
+      
+      let x = padding + col * effectiveCardWidth + rowOffset;
+      let y = padding + 70 + row * effectiveCardHeight;
+      
+      // Add more pronounced jitter for looser, natural look
+      const jitterX = (Math.sin(cardIndex * 2.5) * 20) + (Math.cos(cardIndex * 1.7) * 15);
+      const jitterY = (Math.cos(cardIndex * 3.2) * 18) + (Math.sin(cardIndex * 2.1) * 12);
+      x += jitterX;
+      y += jitterY;
       
       // Avoid the center box area
       const cardCenterX = x + cardWidth / 2;
       const cardCenterY = y + cardHeight / 2;
       const distFromCenter = Math.sqrt(Math.pow(cardCenterX - cx, 2) + Math.pow(cardCenterY - cy, 2));
       
-      if (distFromCenter < boxSize) {
-        // Push to left or right side of the box
-        if (cardCenterX < cx) {
-          x = Math.max(padding, cx - boxSize - cardWidth - 10);
-        } else {
-          x = Math.min(rect.width - cardWidth - padding, cx + boxSize + 10);
-        }
-        // Adjust Y position too
-        y = padding + 70 + ((yRatio + 0.3) % 1) * availableHeight;
+      if (distFromCenter < boxSize + 30) {
+        // Push away from center box
+        const angle = Math.atan2(cardCenterY - cy, cardCenterX - cx);
+        const pushDist = boxSize + 40 - distFromCenter;
+        x += Math.cos(angle) * pushDist;
+        y += Math.sin(angle) * pushDist;
+      }
+      
+      // Wrap around if going off screen
+      if (x > rect.width - cardWidth - padding) {
+        x = padding + ((x - padding) % (rect.width - cardWidth - padding * 2));
+      }
+      if (y > rect.height - cardHeight - padding - 100) {
+        y = padding + 70 + ((y - padding - 70) % (availableHeight));
       }
       
       // Final bounds check
       x = Math.max(padding, Math.min(x, rect.width - cardWidth - padding));
-      y = Math.max(padding + 70, Math.min(y, rect.height - cardHeight - padding - 130));
+      y = Math.max(padding + 70, Math.min(y, rect.height - cardHeight - padding - 100));
       
-      // Get card index for z-index layering
-      const cardIndex = [...photoLayer.children].indexOf(card);
+      // Z-index increases with card order so later photos appear on top
       const baseZIndex = 5 + cardIndex;
       
       if (animate) {
@@ -814,7 +840,7 @@
       const { id, imageData, angle, radius, caption, group } = photo;
 
       const card = document.createElement("div");
-      card.className = `photo-card tilt-${(index % 4) + 1}`;
+      card.className = `photo-card tilt-${(index % 6) + 1}`;
       if (group) card.classList.add('paired');
       card.dataset.angle = angle;
       card.dataset.radius = radius;
@@ -834,8 +860,8 @@
       const rect = photoLayer.getBoundingClientRect();
       const cx = rect.width / 2;
       const cy = rect.height / 2;
-      card.style.left = `${cx - 60}px`;
-      card.style.top = `${cy - 65}px`;
+      card.style.left = `${cx - 70}px`;
+      card.style.top = `${cy - 60}px`;
     }
 
     function handlePhotoClick(photoId) {
