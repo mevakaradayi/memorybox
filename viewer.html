@@ -458,6 +458,7 @@
       });
   
       let isOpen = false;
+      let photoTimeouts = []; // Track animation timeouts
 
       // Show empty state if no photos
       if (photoCards.length === 0) {
@@ -537,6 +538,10 @@
 
       closeBtn.addEventListener("click", () => {
         closeBtn.classList.remove("visible");
+
+        // Cancel any pending photo animations
+        photoTimeouts.forEach(t => clearTimeout(t));
+        photoTimeouts = [];
 
         photoCards.forEach((card) => {
           card.classList.remove('visible');
@@ -622,12 +627,14 @@
           card.style.left = `${cx - cardWidth/2}px`;
           card.style.top = `${cy - cardHeight/2}px`;
           requestAnimationFrame(() => {
-            setTimeout(() => {
+            const innerTimeout = setTimeout(() => {
+              if (!isOpen) return; // Don't animate if box was closed
               card.style.left = `${x}px`;
               card.style.top = `${y}px`;
               card.style.zIndex = baseZIndex;
               card.classList.add('visible');
             }, 50);
+            photoTimeouts.push(innerTimeout);
           });
         } else {
           card.style.left = `${x}px`;
@@ -637,11 +644,14 @@
       }
 
       function placePhotos() {
+        photoTimeouts = []; // Clear any previous timeouts
         const totalCards = photoCards.length;
         photoCards.forEach((card, index) => {
-          setTimeout(() => {
+          const timeoutId = setTimeout(() => {
+            if (!isOpen) return; // Don't animate if box was closed
             placeCard(card, index, totalCards, true);
           }, index * 80);
+          photoTimeouts.push(timeoutId);
         });
       }
 

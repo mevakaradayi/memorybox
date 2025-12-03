@@ -32,9 +32,19 @@
       max-width: 260px;
       width: 40vw;
       filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.9));
-      pointer-events: none;
+      pointer-events: auto;
+      cursor: pointer;
       z-index: 5;
-      transition: opacity 0.25s ease;
+      transition: opacity 0.25s ease, transform 0.2s ease;
+    }
+
+    .memory-box-image:hover {
+      transform: translate(-50%, -50%) scale(1.03);
+    }
+
+    .memory-box-image.box-open {
+      pointer-events: none;
+      cursor: default;
     }
 
     .photo-layer {
@@ -729,6 +739,7 @@
         : "No photos yet.";
   
       boxImage.src = isBoxOpen ? "Images/box-open.png" : "Images/box-close.png";
+      boxImage.classList.toggle("box-open", isBoxOpen);
       photoLayer.classList.toggle("photos-hidden", !isBoxOpen);
   
       const cards = [...photoLayer.children];
@@ -973,6 +984,14 @@
     });
   
     // ============ BOX CONTROLS ============
+  
+    // Click on closed box image to open
+    boxImage.addEventListener("click", () => {
+      if (!isBoxOpen && photosData.length > 0) {
+        isBoxOpen = true;
+        updateUI();
+      }
+    });
   
     openBoxBtn.addEventListener("click", () => {
       isBoxOpen = true;
