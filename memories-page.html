@@ -606,7 +606,7 @@
       z-index: 10;
     }
 
-    .browse-link {
+    .browse-link, .profile-link {
       position: absolute;
       top: 80px;
       right: 28px;
@@ -622,9 +622,13 @@
       transition: all 0.2s ease;
     }
 
-    .browse-link:hover {
+    .browse-link:hover, .profile-link:hover {
       border-color: var(--burgundy);
       background: rgba(114, 47, 55, 0.05);
+    }
+
+    .profile-link {
+      top: 136px;
     }
 
     .logout-btn {
@@ -656,6 +660,7 @@
 
     <div id="greeting" class="greeting">Hello, Friend ✨</div>
     <a href="browse.html" class="browse-link">👥 Browse Boxes</a>
+    <a href="profile.html" class="profile-link">👤 Profile</a>
     <button id="logout-btn" class="logout-btn">Logout</button>
 
     <img id="box-image"

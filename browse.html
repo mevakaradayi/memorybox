@@ -159,6 +159,13 @@
       position: relative;
       z-index: 1;
       box-shadow: 0 4px 12px rgba(114, 47, 55, 0.2);
+      overflow: hidden;
+    }
+
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     
     .user-name {
@@ -288,6 +295,7 @@
   
   <nav class="nav-bar">
     <a href="memories-page.html" class="nav-link">📦 My Box</a>
+    <a href="profile.html" class="nav-link">👤 Profile</a>
     <a href="login.html" class="nav-link" id="logoutLink" onclick="logout()">Logout</a>
   </nav>
   
@@ -345,7 +353,11 @@
         
         grid.innerHTML = others.map(user => `
           <div class="user-card" onclick="viewBox('${encodeURIComponent(user.id)}')">
-            <div class="user-avatar">${getInitials(user.name)}</div>
+            <div class="user-avatar">
+              ${user.profilePhoto 
+                ? `<img src="${user.profilePhoto}" alt="${user.name}'s photo">` 
+                : getInitials(user.name)}
+            </div>
             <div class="user-name">${user.name}</div>
             <div class="photo-count">
               📷 ${user.photoCount} ${user.photoCount === 1 ? 'memory' : 'memories'}

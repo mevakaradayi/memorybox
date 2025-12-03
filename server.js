@@ -175,6 +175,7 @@ app.get('/api/users', (req, res) => {
     id: email,
     name: user.name,
     username: user.username || null,
+    profilePhoto: user.profilePhoto || null,
     photoCount: (data.photos[email] || []).length
   }));
   res.json(users);
@@ -187,10 +188,89 @@ app.get('/api/users/:userId', (req, res) => {
   const user = data.users[userId];
   
   if (user) {
-    res.json({ id: userId, name: user.name, username: user.username || null });
+    res.json({ 
+      id: userId, 
+      name: user.name, 
+      username: user.username || null,
+      profilePhoto: user.profilePhoto || null
+    });
   } else {
     res.status(404).json({ error: 'User not found' });
   }
+});
+
+// Update user profile (name, username, profilePhoto)
+app.patch('/api/users/:userId', (req, res) => {
+  const data = getData();
+  const userId = decodeURIComponent(req.params.userId);
+  const user = data.users[userId];
+  
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  const { name, username, profilePhoto } = req.body;
+  
+  // Update name if provided
+  if (name !== undefined) {
+    user.name = name.trim();
+  }
+  
+  // Update username if provided
+  if (username !== undefined) {
+    const usernameLower = username.toLowerCase().trim();
+    
+    // Validate username format
+    if (usernameLower && !/^[a-zA-Z0-9_]+$/.test(usernameLower)) {
+      return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });
+    }
+    
+    // Check if username is taken by another user
+    const usernameExists = Object.entries(data.users).some(
+      ([email, u]) => email !== userId && u.username && u.username.toLowerCase() === usernameLower
+    );
+    
+    if (usernameExists) {
+      return res.status(400).json({ error: 'Username already taken' });
+    }
+    
+    user.username = usernameLower;
+  }
+  
+  // Update profile photo if provided (can be null to remove)
+  if (profilePhoto !== undefined) {
+    user.profilePhoto = profilePhoto;
+  }
+  
+  saveData(data);
+  
+  res.json({ 
+    success: true, 
+    user: { 
+      id: userId, 
+      name: user.name, 
+      username: user.username,
+      profilePhoto: user.profilePhoto 
+    } 
+  });
+});
+
+// Delete user account
+app.delete('/api/users/:userId', (req, res) => {
+  const data = getData();
+  const userId = decodeURIComponent(req.params.userId);
+  
+  if (!data.users[userId]) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  // Delete user and their photos
+  delete data.users[userId];
+  delete data.photos[userId];
+  
+  saveData(data);
+  
+  res.json({ success: true });
 });
 
 const PORT = 3000;

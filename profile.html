@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Profile – Memory Box</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Pinyon+Script&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --cream: #F5EDE0;
+      --cream-light: #FDF8F3;
+      --burgundy: #722F37;
+      --burgundy-dark: #5A252C;
+      --dusty-pink: #D4A5A5;
+      --dusty-pink-light: #E8C4C4;
+      --gold: #B8860B;
+      --gold-light: #DAA520;
+      --navy: #2C3E50;
+      --soft-blue: #8CBED6;
+      --text-dark: #3D2C29;
+      --text-muted: #6B5B55;
+      --danger: #C0392B;
+      --danger-dark: #922B21;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      min-height: 100vh;
+      background: var(--cream);
+      background-image: 
+        url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23D4A5A5' fill-opacity='0.08'%3E%3Ccircle cx='50' cy='50' r='1'/%3E%3C/g%3E%3C/svg%3E"),
+        linear-gradient(180deg, var(--cream-light) 0%, var(--cream) 100%);
+      font-family: 'Crimson Pro', Georgia, serif;
+      color: var(--text-dark);
+      padding: 40px 20px;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse at top left, rgba(212, 165, 165, 0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at bottom right, rgba(140, 190, 214, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .decorative-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+
+    .decorative-line::before,
+    .decorative-line::after {
+      content: "";
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--dusty-pink), transparent);
+    }
+
+    .decorative-line span {
+      color: var(--dusty-pink);
+      font-size: 1.2rem;
+    }
+    
+    h1 {
+      font-family: 'Pinyon Script', cursive;
+      font-size: 3rem;
+      font-weight: normal;
+      color: var(--burgundy);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      font-style: italic;
+      letter-spacing: 1px;
+    }
+
+    .nav-bar {
+      max-width: 600px;
+      margin: 0 auto 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .nav-link {
+      color: var(--burgundy);
+      text-decoration: none;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1rem;
+      padding: 10px 22px;
+      border-radius: 4px;
+      border: 1px solid var(--dusty-pink);
+      background: var(--cream-light);
+      transition: all 0.2s ease;
+    }
+    
+    .nav-link:hover {
+      background: rgba(114, 47, 55, 0.05);
+      border-color: var(--burgundy);
+    }
+
+    .profile-container {
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .profile-card {
+      background: var(--cream-light);
+      border-radius: 8px;
+      padding: 40px 32px;
+      border: 1px solid var(--dusty-pink-light);
+      box-shadow: 0 8px 32px rgba(114, 47, 55, 0.1);
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .profile-card::before {
+      content: "";
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      border: 1px solid rgba(212, 165, 165, 0.3);
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    .card-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--burgundy);
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--dusty-pink-light);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Profile Photo Section */
+    .photo-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .avatar-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+    }
+
+    .avatar-preview {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--dusty-pink), var(--burgundy));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 4rem;
+      color: white;
+      box-shadow: 0 8px 24px rgba(114, 47, 55, 0.25);
+      overflow: hidden;
+      border: 4px solid var(--cream-light);
+      outline: 2px solid var(--dusty-pink);
+    }
+
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      cursor: pointer;
+    }
+
+    .avatar-container:hover .avatar-overlay {
+      opacity: 1;
+    }
+
+    .avatar-overlay span {
+      color: white;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1rem;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .photo-input {
+      display: none;
+    }
+
+    .photo-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--burgundy) 0%, var(--burgundy-dark) 100%);
+      color: var(--cream-light);
+      box-shadow: 0 4px 12px rgba(114, 47, 55, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(114, 47, 55, 0.35);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--burgundy);
+      border: 1px solid var(--dusty-pink);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(114, 47, 55, 0.05);
+      border-color: var(--burgundy);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(192, 57, 43, 0.25);
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(192, 57, 43, 0.35);
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+
+    .btn-danger-outline:hover {
+      background: rgba(192, 57, 43, 0.08);
+    }
+
+    /* Form Fields */
+    .field-group {
+      margin-bottom: 20px;
+    }
+
+    .field-group label {
+      display: block;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-dark);
+    }
+
+    .field-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 4px;
+      border: 1px solid var(--dusty-pink);
+      background: white;
+      color: var(--text-dark);
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 1.1rem;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .field-group input:focus {
+      border-color: var(--burgundy);
+      box-shadow: 0 0 0 3px rgba(114, 47, 55, 0.1);
+    }
+
+    .field-group input:disabled {
+      background: var(--cream);
+      color: var(--text-muted);
+    }
+
+    .field-hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    .username-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .username-display span {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    /* Danger Zone */
+    .danger-zone {
+      border-color: rgba(192, 57, 43, 0.3);
+    }
+
+    .danger-zone .card-title {
+      color: var(--danger);
+      border-bottom-color: rgba(192, 57, 43, 0.2);
+    }
+
+    .danger-zone::before {
+      border-color: rgba(192, 57, 43, 0.15);
+    }
+
+    .danger-description {
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    /* Success/Error Messages */
+    .message {
+      padding: 14px 18px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+      display: none;
+    }
+
+    .message.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .message.success {
+      background: rgba(39, 174, 96, 0.1);
+      border: 1px solid rgba(39, 174, 96, 0.3);
+      color: #1E8449;
+    }
+
+    .message.error {
+      background: rgba(192, 57, 43, 0.1);
+      border: 1px solid rgba(192, 57, 43, 0.3);
+      color: var(--danger);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--cream-light);
+      border-radius: 8px;
+      padding: 32px;
+      max-width: 450px;
+      width: 90%;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-overlay.show .modal {
+      transform: scale(1);
+    }
+
+    .modal h3 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.5rem;
+      color: var(--danger);
+      margin-bottom: 16px;
+    }
+
+    .modal p {
+      color: var(--text-dark);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .footer-decoration {
+      text-align: center;
+      margin-top: 48px;
+      font-family: 'Pinyon Script', cursive;
+      font-size: 1.3rem;
+      color: var(--dusty-pink);
+      letter-spacing: 2px;
+    }
+
+    /* Loading State */
+    .btn.loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .btn.loading::after {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      margin-left: 8px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 500px) {
+      h1 { font-size: 2.4rem; }
+      .profile-card { padding: 28px 20px; }
+      .avatar-preview { width: 120px; height: 120px; font-size: 3rem; }
+      .avatar-container { width: 120px; height: 120px; }
+      .modal-actions { flex-direction: column; }
+    }
+
+    /* Crop Modal */
+    .crop-modal {
+      max-width: 500px;
+      padding: 24px;
+    }
+
+    .crop-modal h3 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.5rem;
+      color: var(--burgundy);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .crop-subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    .crop-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #1a1a1a;
+      cursor: grab;
+      box-shadow: 0 0 0 4px var(--dusty-pink), 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .crop-container:active {
+      cursor: grabbing;
+    }
+
+    .crop-image {
+      position: absolute;
+      transform-origin: center center;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+
+    .crop-guide {
+      position: absolute;
+      inset: 0;
+      border: 2px dashed rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .crop-guide::before,
+    .crop-guide::after {
+      content: "";
+      position: absolute;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .crop-guide::before {
+      top: 50%;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+    }
+
+    .crop-guide::after {
+      left: 50%;
+      top: 10%;
+      bottom: 10%;
+      width: 1px;
+    }
+
+    .crop-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .zoom-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 10px;
+    }
+
+    .zoom-control label {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+      min-width: 50px;
+    }
+
+    .zoom-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      background: var(--dusty-pink-light);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .zoom-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(114, 47, 55, 0.3);
+      transition: transform 0.15s ease;
+    }
+
+    .zoom-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+    }
+
+    .zoom-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 6px rgba(114, 47, 55, 0.3);
+    }
+
+    .zoom-icons {
+      display: flex;
+      gap: 4px;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .crop-hint {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 10px;
+      background: rgba(114, 47, 55, 0.05);
+      border-radius: 4px;
+    }
+
+    .rotation-control {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .rotate-btn {
+      background: var(--cream);
+      border: 1px solid var(--dusty-pink);
+      color: var(--burgundy);
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .rotate-btn:hover {
+      background: rgba(114, 47, 55, 0.05);
+      border-color: var(--burgundy);
+    }
+
+    @media (max-width: 500px) {
+      .crop-modal { padding: 20px 16px; }
+      .crop-container { width: 250px; height: 250px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <div class="decorative-line"><span>❦</span></div>
+    <h1>My Profile</h1>
+    <p class="subtitle">personalize your memory box</p>
+  </div>
+  
+  <nav class="nav-bar">
+    <a href="memories-page.html" class="nav-link">📦 My Box</a>
+    <a href="browse.html" class="nav-link">🔍 Browse</a>
+    <a href="login.html" class="nav-link" onclick="logout()">Logout</a>
+  </nav>
+
+  <div class="profile-container">
+    <!-- Profile Photo Card -->
+    <div class="profile-card">
+      <h2 class="card-title">📷 Profile Photo</h2>
+      <div id="photoMessage" class="message"></div>
+      <div class="photo-section">
+        <div class="avatar-container" onclick="document.getElementById('photoInput').click()">
+          <div class="avatar-preview" id="avatarPreview">
+            <span id="avatarInitials"></span>
+          </div>
+          <div class="avatar-overlay">
+            <span>Click to<br>change photo</span>
+          </div>
+        </div>
+        <input type="file" id="photoInput" class="photo-input" accept="image/*" onchange="handlePhotoSelect(event)">
+        <div class="photo-actions">
+          <button class="btn btn-primary" id="uploadBtn" onclick="document.getElementById('photoInput').click()">
+            Choose Photo
+          </button>
+          <button class="btn btn-secondary" id="removePhotoBtn" onclick="removePhoto()" style="display: none;">
+            Remove Photo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Username Card -->
+    <div class="profile-card">
+      <h2 class="card-title">✏️ Account Details</h2>
+      <div id="usernameMessage" class="message"></div>
+      <form onsubmit="updateUsername(event)">
+        <div class="field-group">
+          <label for="displayName">Display Name</label>
+          <input type="text" id="displayName" placeholder="Your display name" required>
+        </div>
+        <div class="field-group">
+          <label for="username">Username</label>
+          <div class="username-display">
+            <span>@</span>
+            <input type="text" id="username" placeholder="your_username" required 
+                   pattern="^[a-zA-Z0-9_]+$" 
+                   title="Username can only contain letters, numbers, and underscores">
+          </div>
+          <p class="field-hint">Letters, numbers, and underscores only. This is how others find you.</p>
+        </div>
+        <div class="field-group">
+          <label>Email</label>
+          <input type="email" id="email" disabled>
+        </div>
+        <button type="submit" class="btn btn-primary" id="saveBtn">Save Changes</button>
+      </form>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="profile-card danger-zone">
+      <h2 class="card-title">⚠️ Danger Zone</h2>
+      <p class="danger-description">
+        Once you delete your account, there is no going back. All your memories, photos, 
+        and data will be permanently removed. Please be certain.
+      </p>
+      <button class="btn btn-danger-outline" onclick="showDeleteModal()">Delete My Account</button>
+    </div>
+  </div>
+
+  <div class="footer-decoration">~ with love ~</div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+      <h3>Delete Account?</h3>
+      <p>
+        This action cannot be undone. All your memories, photos, and account data 
+        will be permanently deleted. Are you absolutely sure?
+      </p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="hideDeleteModal()">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn" onclick="deleteAccount()">Yes, Delete My Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crop Modal -->
+  <div class="modal-overlay" id="cropModal">
+    <div class="modal crop-modal">
+      <h3>Adjust Your Photo</h3>
+      <p class="crop-subtitle">Drag to position, use slider to zoom</p>
+      
+      <div class="crop-container" id="cropContainer">
+        <img id="cropImage" class="crop-image" draggable="false">
+        <div class="crop-guide"></div>
+      </div>
+
+      <div class="crop-controls">
+        <div class="zoom-control">
+          <label>Zoom</label>
+          <div class="zoom-icons"><span>🔍</span></div>
+          <input type="range" class="zoom-slider" id="zoomSlider" min="100" max="300" value="100">
+        </div>
+        <div class="rotation-control">
+          <button class="rotate-btn" onclick="rotateImage(-90)">↺ Rotate Left</button>
+          <button class="rotate-btn" onclick="rotateImage(90)">↻ Rotate Right</button>
+        </div>
+        <div class="crop-hint">
+          💡 Drag the image to reposition it within the circle
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="hideCropModal()">Cancel</button>
+        <button class="btn btn-primary" id="applyCropBtn" onclick="applyCrop()">Use This Photo</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:3000/api';
+    const SESSION_KEY = 'memoryBox_session';
+    let session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+
+    // Redirect to login if not logged in
+    if (!session) {
+      window.location.href = 'login.html';
+    }
+
+    function logout() {
+      localStorage.removeItem(SESSION_KEY);
+    }
+
+    function getInitials(name) {
+      return name
+        .split(' ')
+        .map(word => word[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+
+    function showMessage(elementId, message, type) {
+      const el = document.getElementById(elementId);
+      el.textContent = message;
+      el.className = `message show ${type}`;
+      setTimeout(() => {
+        el.classList.remove('show');
+      }, 4000);
+    }
+
+    // Load user profile on page load
+    async function loadProfile() {
+      try {
+        const res = await fetch(`${API}/users/${encodeURIComponent(session.email)}`);
+        const user = await res.json();
+
+        document.getElementById('displayName').value = user.name || '';
+        document.getElementById('username').value = user.username || '';
+        document.getElementById('email').value = session.email;
+
+        // Update avatar
+        updateAvatarDisplay(user.profilePhoto, user.name);
+
+        // Show/hide remove photo button
+        document.getElementById('removePhotoBtn').style.display = user.profilePhoto ? 'inline-block' : 'none';
+
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+        showMessage('usernameMessage', 'Failed to load profile. Make sure the server is running.', 'error');
+      }
+    }
+
+    function updateAvatarDisplay(photoData, name) {
+      const preview = document.getElementById('avatarPreview');
+      const initials = document.getElementById('avatarInitials');
+
+      if (photoData) {
+        preview.innerHTML = `<img src="${photoData}" alt="Profile photo">`;
+      } else {
+        preview.innerHTML = `<span id="avatarInitials">${getInitials(name || 'User')}</span>`;
+      }
+    }
+
+    // ============ CROP FUNCTIONALITY ============
+    let cropState = {
+      originalImage: null,
+      scale: 1,
+      rotation: 0,
+      offsetX: 0,
+      offsetY: 0,
+      isDragging: false,
+      startX: 0,
+      startY: 0,
+      imageWidth: 0,
+      imageHeight: 0
+    };
+
+    // Handle photo selection - now opens crop modal
+    function handlePhotoSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showMessage('photoMessage', 'Photo is too large. Maximum size is 5MB.', 'error');
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        showMessage('photoMessage', 'Please select an image file.', 'error');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        openCropModal(e.target.result);
+      };
+      reader.readAsDataURL(file);
+      
+      // Reset file input so same file can be selected again
+      event.target.value = '';
+    }
+
+    function openCropModal(imageData) {
+      const modal = document.getElementById('cropModal');
+      const cropImage = document.getElementById('cropImage');
+      const zoomSlider = document.getElementById('zoomSlider');
+      
+      // Reset crop state
+      cropState = {
+        originalImage: imageData,
+        scale: 1,
+        rotation: 0,
+        offsetX: 0,
+        offsetY: 0,
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        imageWidth: 0,
+        imageHeight: 0
+      };
+      
+      // Reset zoom slider
+      zoomSlider.value = 100;
+      
+      // Load image and set initial position
+      const img = new Image();
+      img.onload = () => {
+        cropState.imageWidth = img.width;
+        cropState.imageHeight = img.height;
+        
+        // Calculate initial scale to fill the crop circle
+        const container = document.getElementById('cropContainer');
+        const containerSize = container.offsetWidth;
+        const minDimension = Math.min(img.width, img.height);
+        const initialScale = containerSize / minDimension;
+        
+        cropState.scale = initialScale;
+        zoomSlider.min = Math.round(initialScale * 100);
+        zoomSlider.max = Math.round(initialScale * 300);
+        zoomSlider.value = Math.round(initialScale * 100);
+        
+        cropImage.src = imageData;
+        updateCropTransform();
+        
+        modal.classList.add('show');
+      };
+      img.src = imageData;
+    }
+
+    function hideCropModal() {
+      document.getElementById('cropModal').classList.remove('show');
+    }
+
+    function updateCropTransform() {
+      const cropImage = document.getElementById('cropImage');
+      const container = document.getElementById('cropContainer');
+      const containerSize = container.offsetWidth;
+      
+      const scaledWidth = cropState.imageWidth * cropState.scale;
+      const scaledHeight = cropState.imageHeight * cropState.scale;
+      
+      // Center the image
+      const baseX = (containerSize - scaledWidth) / 2;
+      const baseY = (containerSize - scaledHeight) / 2;
+      
+      cropImage.style.width = `${scaledWidth}px`;
+      cropImage.style.height = `${scaledHeight}px`;
+      cropImage.style.left = `${baseX + cropState.offsetX}px`;
+      cropImage.style.top = `${baseY + cropState.offsetY}px`;
+      cropImage.style.transform = `rotate(${cropState.rotation}deg)`;
+    }
+
+    // Zoom slider handler
+    document.getElementById('zoomSlider').addEventListener('input', (e) => {
+      cropState.scale = parseInt(e.target.value) / 100;
+      updateCropTransform();
+    });
+
+    // Rotation
+    function rotateImage(degrees) {
+      cropState.rotation = (cropState.rotation + degrees) % 360;
+      updateCropTransform();
+    }
+
+    // Drag handlers
+    const cropContainer = document.getElementById('cropContainer');
+
+    cropContainer.addEventListener('mousedown', startDrag);
+    cropContainer.addEventListener('touchstart', startDrag, { passive: false });
+
+    function startDrag(e) {
+      e.preventDefault();
+      cropState.isDragging = true;
+      
+      const pos = getEventPosition(e);
+      cropState.startX = pos.x - cropState.offsetX;
+      cropState.startY = pos.y - cropState.offsetY;
+      
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', endDrag);
+      document.addEventListener('touchmove', onDrag, { passive: false });
+      document.addEventListener('touchend', endDrag);
+    }
+
+    function onDrag(e) {
+      if (!cropState.isDragging) return;
+      e.preventDefault();
+      
+      const pos = getEventPosition(e);
+      cropState.offsetX = pos.x - cropState.startX;
+      cropState.offsetY = pos.y - cropState.startY;
+      
+      updateCropTransform();
+    }
+
+    function endDrag() {
+      cropState.isDragging = false;
+      document.removeEventListener('mousemove', onDrag);
+      document.removeEventListener('mouseup', endDrag);
+      document.removeEventListener('touchmove', onDrag);
+      document.removeEventListener('touchend', endDrag);
+    }
+
+    function getEventPosition(e) {
+      if (e.touches && e.touches.length > 0) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+      return { x: e.clientX, y: e.clientY };
+    }
+
+    // Apply crop and save
+    async function applyCrop() {
+      const btn = document.getElementById('applyCropBtn');
+      btn.classList.add('loading');
+      btn.textContent = 'Processing...';
+
+      try {
+        const croppedImage = await generateCroppedImage();
+        
+        // Update preview immediately
+        updateAvatarDisplay(croppedImage, session.name);
+        
+        // Hide modal
+        hideCropModal();
+        
+        // Save to server
+        await saveProfilePhoto(croppedImage);
+        
+      } catch (err) {
+        console.error('Failed to crop image:', err);
+        showMessage('photoMessage', 'Failed to process image. Please try again.', 'error');
+      } finally {
+        btn.classList.remove('loading');
+        btn.textContent = 'Use This Photo';
+      }
+    }
+
+    function generateCroppedImage() {
+      return new Promise((resolve) => {
+        const container = document.getElementById('cropContainer');
+        const containerSize = container.offsetWidth;
+        const outputSize = 400; // Final output size
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = outputSize;
+        canvas.height = outputSize;
+        const ctx = canvas.getContext('2d');
+        
+        const img = new Image();
+        img.onload = () => {
+          // Create circular clip
+          ctx.beginPath();
+          ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+          
+          // Fill background
+          ctx.fillStyle = '#f5ede0';
+          ctx.fillRect(0, 0, outputSize, outputSize);
+          
+          // Calculate scale ratio between container and output
+          const ratio = outputSize / containerSize;
+          
+          // Calculate drawing parameters
+          const scaledWidth = cropState.imageWidth * cropState.scale * ratio;
+          const scaledHeight = cropState.imageHeight * cropState.scale * ratio;
+          
+          const drawX = (outputSize - scaledWidth) / 2 + (cropState.offsetX * ratio);
+          const drawY = (outputSize - scaledHeight) / 2 + (cropState.offsetY * ratio);
+          
+          // Apply rotation
+          ctx.save();
+          ctx.translate(outputSize / 2, outputSize / 2);
+          ctx.rotate((cropState.rotation * Math.PI) / 180);
+          ctx.translate(-outputSize / 2, -outputSize / 2);
+          
+          // Draw image
+          ctx.drawImage(img, drawX, drawY, scaledWidth, scaledHeight);
+          ctx.restore();
+          
+          resolve(canvas.toDataURL('image/jpeg', 0.9));
+        };
+        img.src = cropState.originalImage;
+      });
+    }
+
+    // Close crop modal on outside click
+    document.getElementById('cropModal').addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal-overlay')) {
+        hideCropModal();
+      }
+    });
+
+    async function saveProfilePhoto(imageData) {
+      const btn = document.getElementById('uploadBtn');
+      btn.classList.add('loading');
+      btn.textContent = 'Saving...';
+
+      try {
+        const res = await fetch(`${API}/users/${encodeURIComponent(session.email)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profilePhoto: imageData })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Failed to save photo');
+        }
+
+        showMessage('photoMessage', 'Profile photo updated successfully!', 'success');
+        document.getElementById('removePhotoBtn').style.display = 'inline-block';
+
+        // Update session
+        session.profilePhoto = imageData;
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+      } catch (err) {
+        console.error('Failed to save photo:', err);
+        showMessage('photoMessage', err.message, 'error');
+      } finally {
+        btn.classList.remove('loading');
+        btn.textContent = 'Choose Photo';
+      }
+    }
+
+    async function removePhoto() {
+      const btn = document.getElementById('removePhotoBtn');
+      btn.classList.add('loading');
+      btn.textContent = 'Removing...';
+
+      try {
+        const res = await fetch(`${API}/users/${encodeURIComponent(session.email)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profilePhoto: null })
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to remove photo');
+        }
+
+        updateAvatarDisplay(null, session.name);
+        showMessage('photoMessage', 'Profile photo removed.', 'success');
+        btn.style.display = 'none';
+
+        // Update session
+        delete session.profilePhoto;
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+      } catch (err) {
+        console.error('Failed to remove photo:', err);
+        showMessage('photoMessage', 'Failed to remove photo. Please try again.', 'error');
+      } finally {
+        btn.classList.remove('loading');
+        btn.textContent = 'Remove Photo';
+      }
+    }
+
+    async function updateUsername(event) {
+      event.preventDefault();
+      
+      const displayName = document.getElementById('displayName').value.trim();
+      const username = document.getElementById('username').value.trim().toLowerCase();
+      const btn = document.getElementById('saveBtn');
+
+      if (!displayName) {
+        showMessage('usernameMessage', 'Display name cannot be empty.', 'error');
+        return;
+      }
+
+      if (!username || !/^[a-zA-Z0-9_]+$/.test(username)) {
+        showMessage('usernameMessage', 'Username can only contain letters, numbers, and underscores.', 'error');
+        return;
+      }
+
+      btn.classList.add('loading');
+      btn.textContent = 'Saving...';
+
+      try {
+        const res = await fetch(`${API}/users/${encodeURIComponent(session.email)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: displayName, username })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Failed to update profile');
+        }
+
+        showMessage('usernameMessage', 'Profile updated successfully!', 'success');
+
+        // Update session
+        session.name = displayName;
+        session.username = username;
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+        // Update initials if no photo
+        if (!session.profilePhoto) {
+          updateAvatarDisplay(null, displayName);
+        }
+
+      } catch (err) {
+        console.error('Failed to update profile:', err);
+        showMessage('usernameMessage', err.message, 'error');
+      } finally {
+        btn.classList.remove('loading');
+        btn.textContent = 'Save Changes';
+      }
+    }
+
+    function showDeleteModal() {
+      document.getElementById('deleteModal').classList.add('show');
+    }
+
+    function hideDeleteModal() {
+      document.getElementById('deleteModal').classList.remove('show');
+    }
+
+    async function deleteAccount() {
+      const btn = document.getElementById('confirmDeleteBtn');
+      btn.classList.add('loading');
+      btn.textContent = 'Deleting...';
+
+      try {
+        const res = await fetch(`${API}/users/${encodeURIComponent(session.email)}`, {
+          method: 'DELETE'
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to delete account');
+        }
+
+        // Clear session and redirect
+        localStorage.removeItem(SESSION_KEY);
+        window.location.href = 'login.html';
+
+      } catch (err) {
+        console.error('Failed to delete account:', err);
+        hideDeleteModal();
+        showMessage('usernameMessage', 'Failed to delete account. Please try again.', 'error');
+        btn.classList.remove('loading');
+        btn.textContent = 'Yes, Delete My Account';
+      }
+    }
+
+    // Close modal on outside click
+    document.getElementById('deleteModal').addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal-overlay')) {
+        hideDeleteModal();
+      }
+    });
+
+    // Load profile on page load
+    loadProfile();
+  </script>
+</body>
+</html>
+
