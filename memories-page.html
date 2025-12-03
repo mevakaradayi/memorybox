@@ -479,6 +479,51 @@
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     }
 
+    .browse-link {
+      position: absolute;
+      top: 62px;
+      right: 24px;
+      z-index: 10;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      color: #fdf6e3;
+      text-decoration: none;
+      background: transparent;
+      border: 1px solid rgba(253, 246, 227, 0.5);
+      transition: all 0.2s ease;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .browse-link:hover {
+      border-color: #ffcf71;
+      color: #ffcf71;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      z-index: 10;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: transparent;
+      border: 1px solid rgba(253, 246, 227, 0.5);
+      color: #fdf6e3;
+      transition: all 0.2s ease;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 107, 107, 0.2);
+      border-color: #ff6b6b;
+      color: #ff6b6b;
+    }
+
     .hidden { display: none; }
   </style>
 </head>
@@ -486,6 +531,8 @@
   <div class="scene">
 
     <div id="greeting" class="greeting">Hello, Friend ✨</div>
+    <a href="browse.html" class="browse-link">👥 Browse Boxes</a>
+    <button id="logout-btn" class="logout-btn">🚪 Logout</button>
 
     <img id="box-image"
       src="Images/box-close.png"
@@ -536,7 +583,6 @@
       <span id="photo-count">No photos yet.</span>
       <button id="pair-mode-btn" class="pair-btn">💕 Pair Photos</button>
       <button id="clear-photos" class="clear-button">Clear all</button>
-      <a href="browse.html" class="open-button" style="text-decoration: none;">👥 Browse Boxes</a>
     </div>
   </div>
 
@@ -1140,6 +1186,15 @@
     cancelPairBtn.addEventListener('click', exitPairingMode);
     confirmPairBtn.addEventListener('click', confirmPairing);
     unpairBtn.addEventListener('click', unpairPhotos);
+
+    // ============ LOGOUT ============
+
+    function logout() {
+      localStorage.removeItem(SESSION_KEY);
+      window.location.href = 'login.html';
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', logout);
 
     // ============ INIT ============
   
