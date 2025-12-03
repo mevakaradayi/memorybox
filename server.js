@@ -24,26 +24,60 @@ function saveData(data) {
 
 // Register
 app.post('/api/auth/signup', (req, res) => {
-  const { email, password, name } = req.body;
+  const { email, password, name, username } = req.body;
   const data = getData();
   
+  // Check if email already exists
   if (data.users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
+    return res.status(400).json({ error: 'Email already registered' });
   }
   
-  data.users[email] = { name, password, createdAt: Date.now() };
+  // Validate username format
+  if (!username || !/^[a-zA-Z0-9_]+$/.test(username)) {
+    return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });
+  }
+  
+  // Check if username is already taken
+  const usernameLower = username.toLowerCase();
+  const usernameExists = Object.values(data.users).some(
+    user => user.username && user.username.toLowerCase() === usernameLower
+  );
+  
+  if (usernameExists) {
+    return res.status(400).json({ error: 'Username already taken' });
+  }
+  
+  data.users[email] = { name, username: usernameLower, password, createdAt: Date.now() };
   data.photos[email] = []; // Initialize empty photo array
   saveData(data);
   
-  res.json({ success: true, user: { email, name } });
+  res.json({ success: true, user: { email, name, username: usernameLower } });
 });
 
-// Login
+// Login - accepts email or username
 app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
+  const { identifier, password } = req.body;
   const data = getData();
   
-  const user = data.users[email];
+  let email = null;
+  let user = null;
+  
+  // Check if identifier is an email (direct lookup)
+  if (data.users[identifier]) {
+    email = identifier;
+    user = data.users[identifier];
+  } else {
+    // Search by username
+    const identifierLower = identifier.toLowerCase();
+    for (const [userEmail, userData] of Object.entries(data.users)) {
+      if (userData.username && userData.username.toLowerCase() === identifierLower) {
+        email = userEmail;
+        user = userData;
+        break;
+      }
+    }
+  }
+  
   if (!user) {
     return res.status(401).json({ error: 'User not found' });
   }
@@ -51,7 +85,7 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(401).json({ error: 'Invalid password' });
   }
   
-  res.json({ success: true, user: { email, name: user.name } });
+  res.json({ success: true, user: { email, name: user.name, username: user.username } });
 });
 
 // ============ PHOTO ROUTES ============
@@ -140,6 +174,7 @@ app.get('/api/users', (req, res) => {
   const users = Object.entries(data.users).map(([email, user]) => ({
     id: email,
     name: user.name,
+    username: user.username || null,
     photoCount: (data.photos[email] || []).length
   }));
   res.json(users);
@@ -152,7 +187,7 @@ app.get('/api/users/:userId', (req, res) => {
   const user = data.users[userId];
   
   if (user) {
-    res.json({ id: userId, name: user.name });
+    res.json({ id: userId, name: user.name, username: user.username || null });
   } else {
     res.status(404).json({ error: 'User not found' });
   }

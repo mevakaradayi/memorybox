@@ -354,8 +354,8 @@
       <!-- Sign In -->
       <form id="login-form" class="form active" onsubmit="handleAuth(event, 'login')">
         <div class="field-group">
-          <label for="login-email">Email</label>
-          <input type="email" id="login-email" name="email" placeholder="you@example.com" required />
+          <label for="login-identifier">Email or Username</label>
+          <input type="text" id="login-identifier" name="identifier" placeholder="you@example.com or @username" required />
         </div>
 
         <div class="field-group">
@@ -384,6 +384,12 @@
         <div class="field-group">
           <label for="signup-name">Name</label>
           <input type="text" id="signup-name" name="name" placeholder="Your name" required />
+        </div>
+
+        <div class="field-group">
+          <label for="signup-username">Username</label>
+          <input type="text" id="signup-username" name="username" placeholder="unique_username" required pattern="^[a-zA-Z0-9_]+$" title="Username can only contain letters, numbers, and underscores" />
+          <small style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; display: block;">Letters, numbers, and underscores only</small>
         </div>
 
         <div class="field-group">
@@ -441,17 +447,23 @@
       event.preventDefault();
       const form = event.target;
       const formData = new FormData(form);
-      const email = formData.get('email').toLowerCase().trim();
       const password = formData.get('password');
   
       try {
         if (type === 'signup') {
           const name = formData.get('name')?.trim() || 'Friend';
+          const username = formData.get('username')?.trim().toLowerCase();
+          const email = formData.get('email').toLowerCase().trim();
+  
+          if (!username || !/^[a-zA-Z0-9_]+$/.test(username)) {
+            alert('Username can only contain letters, numbers, and underscores');
+            return;
+          }
   
           const res = await fetch(`${API}/auth/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, name })
+            body: JSON.stringify({ email, password, name, username })
           });
   
           if (!res.ok) {
@@ -465,11 +477,13 @@
           window.location.href = 'memories-page.html';
   
         } else {
-          // Login
+          // Login - can use email or username
+          const identifier = formData.get('identifier').trim().toLowerCase();
+  
           const res = await fetch(`${API}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ identifier, password })
           });
   
           if (!res.ok) {
