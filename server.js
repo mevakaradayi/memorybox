@@ -12,28 +12,25 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 // In-memory storage for reset codes (in production, use Redis or database)
 const resetCodes = new Map();
 
-// Email transporter configuration
-// Using Ethereal for testing - replace with real SMTP credentials for production
+// Email transporter configuration - Gmail
+// ⚠️ TODO: Replace with your actual Gmail credentials
 let emailTransporter = null;
 
+const EMAIL_CONFIG = {
+  user: 'mevakaradayi@gmail.com',
+  pass: 'zhgl zeea ybck fsvi'
+};
+
 async function setupEmailTransporter() {
-  // Create a test account on Ethereal (for development/testing)
-  // In production, replace with your actual SMTP settings
-  const testAccount = await nodemailer.createTestAccount();
-  
   emailTransporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    secure: false,
+    service: 'gmail',
     auth: {
-      user: testAccount.user,
-      pass: testAccount.pass,
-    },
+      user: EMAIL_CONFIG.user,
+      pass: EMAIL_CONFIG.pass
+    }
   });
   
-  console.log('📧 Email transporter ready (using Ethereal test account)');
-  console.log(`   Test emails can be viewed at: https://ethereal.email`);
-  console.log(`   Login: ${testAccount.user}`);
+  console.log('📧 Email transporter ready (using Gmail)');
 }
 
 // Generate a 6-digit code
@@ -48,7 +45,7 @@ async function sendResetCodeEmail(email, code, name) {
   }
   
   const mailOptions = {
-    from: '"Memory Box" <noreply@memorybox.app>',
+    from: `"Memory Box" <${EMAIL_CONFIG.user}>`,
     to: email,
     subject: '🔐 Your Password Reset Code - Memory Box',
     html: `
@@ -75,10 +72,10 @@ async function sendResetCodeEmail(email, code, name) {
   };
   
   const info = await emailTransporter.sendMail(mailOptions);
-  console.log('📧 Reset code email sent:', info.messageId);
-  console.log('   Preview URL:', nodemailer.getTestMessageUrl(info));
+  console.log('📧 Reset code email sent to:', email);
+  console.log('   Message ID:', info.messageId);
   
-  return nodemailer.getTestMessageUrl(info);
+  return null; // No preview URL with Gmail
 }
 
 // Initialize or load data
