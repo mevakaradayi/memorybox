@@ -216,15 +216,14 @@
     }
     
     .nav-bar {
-      max-width: 1000px;
-      margin: 0 auto 36px;
+      position: fixed;
+      top: 40px;
+      right: 20px;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
-      flex-wrap: wrap;
       gap: 12px;
-      position: relative;
-      z-index: 1;
+      z-index: 100;
     }
     
     .nav-link {
@@ -412,7 +411,6 @@
   
   <nav class="nav-bar">
     <a href="memories-page.html" class="nav-link">My Box</a>
-    <a href="profile.html" class="nav-link">Profile</a>
     <a href="login.html" class="nav-link" id="logoutLink" onclick="logout()">Logout</a>
   </nav>
 
