@@ -62,32 +62,6 @@
       z-index: 1;
     }
 
-    .decorative-stamp {
-      position: absolute;
-      top: -20px;
-      right: 20px;
-      width: 70px;
-      height: 85px;
-      background: linear-gradient(135deg, var(--dusty-pink) 0%, var(--dusty-pink-light) 100%);
-      border: 3px solid var(--burgundy);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Pinyon Script', cursive;
-      font-size: 1.8rem;
-      color: var(--burgundy);
-      transform: rotate(8deg);
-      box-shadow: 2px 3px 8px rgba(0,0,0,0.15);
-    }
-
-    .decorative-stamp::before {
-      content: "";
-      position: absolute;
-      inset: 4px;
-      border: 1px dashed var(--burgundy);
-      opacity: 0.5;
-    }
-
     .app-title {
       text-align: center;
       font-family: 'Pinyon Script', cursive;
@@ -331,19 +305,13 @@
       .app-title {
         font-size: 2.6rem;
       }
-      .decorative-stamp {
-        width: 55px;
-        height: 68px;
-        font-size: 1.4rem;
-      }
     }
   </style>
 </head>
 <body>
   <div class="auth-wrapper">
-    <div class="decorative-stamp">💌</div>
     <h1 class="app-title">Memory Box</h1>
-    <p class="subtitle">~ let's write what we can't say ~</p>
+    <p class="subtitle">~ store the moments you never want to lose ~</p>
 
     <div class="auth-card">
       <div class="tab-row">
@@ -368,7 +336,7 @@
             <input type="checkbox" name="remember" />
             <span>Remember me</span>
           </label>
-          <a class="link" href="#">Forgot password?</a>
+          <a class="link" href="reset-password.html">Forgot password?</a>
         </div>
 
         <button type="submit" class="submit-btn">Open My Box ✨</button>
