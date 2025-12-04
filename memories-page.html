@@ -62,22 +62,103 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      max-width: 260px;
-      width: 40vw;
+      width: 160px;
+      height: 160px;
       filter: drop-shadow(0 12px 30px rgba(114, 47, 55, 0.25));
       pointer-events: auto;
       cursor: pointer;
       z-index: 5;
-      transition: opacity 0.25s ease, transform 0.2s ease;
+      transition: opacity 0.25s ease, transform 0.2s ease, filter 0.3s ease;
+      perspective: 800px;
     }
 
     .memory-box-image:hover {
-      transform: translate(-50%, -50%) scale(1.03);
+      transform: translate(-50%, -50%) scale(1.05);
+      filter: drop-shadow(0 12px 30px rgba(114, 47, 55, 0.25))
+              drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
     }
 
     .memory-box-image.box-open {
       pointer-events: none;
       cursor: default;
+    }
+
+    /* 3D Disco Ball Styles */
+    .disco-ball-3d {
+      width: 160px;
+      height: 160px;
+      position: relative;
+      transform-style: preserve-3d;
+    }
+
+    .disco-ball-3d .tile {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: linear-gradient(135deg, 
+        #fff 0%, 
+        #e8e8e8 20%,
+        #c0c0c0 40%, 
+        #a0a0a0 60%, 
+        #c0c0c0 80%, 
+        #fff 100%);
+      border: 0.3px solid rgba(80, 80, 80, 0.4);
+      backface-visibility: visible;
+      transform-style: preserve-3d;
+      border-radius: 1px;
+    }
+
+    .disco-ball-3d .tile::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(45deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.9) 50%, 
+        transparent 100%);
+      opacity: 0;
+      animation: tile-glint 3s ease-in-out infinite;
+      animation-delay: var(--glint-delay, 0s);
+    }
+
+    @keyframes tile-glint {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 0.7; }
+    }
+
+    /* 3D Disco ball spinning animation */
+    @keyframes disco-spin-3d {
+      0% { 
+        transform: translate(-50%, -50%) rotateY(0deg);
+      }
+      100% { 
+        transform: translate(-50%, -50%) rotateY(360deg);
+      }
+    }
+
+    .memory-box-image.spinning .disco-ball-3d {
+      animation: disco-ball-rotate 4s linear infinite;
+    }
+
+    @keyframes disco-ball-rotate {
+      from { transform: rotateY(0deg); }
+      to { transform: rotateY(360deg); }
+    }
+
+    .memory-box-image.spinning {
+      filter: drop-shadow(0 12px 30px rgba(114, 47, 55, 0.25))
+              drop-shadow(0 0 50px rgba(255, 255, 255, 0.5))
+              drop-shadow(0 0 80px rgba(212, 165, 165, 0.4));
+    }
+
+    .memory-box-image.spinning .tile {
+      animation: tile-shimmer 2s ease-in-out infinite;
+      animation-delay: var(--shimmer-delay, 0s);
+    }
+
+    @keyframes tile-shimmer {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.4); }
     }
 
     .photo-layer {
@@ -655,13 +736,12 @@
   <div class="scene">
 
     <div id="greeting" class="greeting">Hello, Friend ✨</div>
-    <a href="browse.html" class="browse-link">👥 Browse Boxes</a>
+    <a href="browse.html" class="browse-link">👥 Browse Others Memories</a>
     <button id="logout-btn" class="logout-btn">Logout</button>
 
-    <img id="box-image"
-      src="Images/box-close.png"
-      class="memory-box-image"
-    >
+    <div id="box-image" class="memory-box-image">
+      <div class="disco-ball-3d" id="disco-ball-3d"></div>
+    </div>
 
     <div id="empty-state" class="empty-state-bubble">
       Your box is empty… add your first memory 💌
@@ -702,14 +782,58 @@
       <label for="photo-input" class="upload-button" id="upload-label">+ Add memories</label>
       <input id="photo-input" type="file" accept="image/*" multiple>
 
-      <button id="open-box" class="open-button">Open box</button>
-      <button id="close-box" class="close-button disabled">Close box</button>
+      <button id="open-box" class="open-button">See Your Memories</button>
+      <button id="close-box" class="close-button disabled">Hide Your Memories</button>
 
       <button id="pair-mode-btn" class="pair-btn">💕 Pair Memories</button>
     </div>
   </div>
 
   <script>
+    // Generate 3D Disco Ball
+    function generateDiscoBall(containerId) {
+      const discoBall = document.getElementById(containerId);
+      if (!discoBall) return;
+      
+      const radius = 80;
+      const rows = 10;
+      
+      for (let i = 0; i < rows; i++) {
+        const phi = (Math.PI / rows) * i;
+        const y = radius * Math.cos(phi);
+        const ringRadius = radius * Math.sin(phi);
+        const tilesInRing = Math.max(1, Math.floor(16 * Math.sin(phi)));
+        
+        for (let j = 0; j < tilesInRing; j++) {
+          const theta = (2 * Math.PI / tilesInRing) * j;
+          const x = ringRadius * Math.cos(theta);
+          const z = ringRadius * Math.sin(theta);
+          
+          const tile = document.createElement('div');
+          tile.className = 'tile';
+          
+          const rotateY = (theta * 180 / Math.PI);
+          const rotateX = (90 - phi * 180 / Math.PI);
+          
+          tile.style.transform = `
+            translate3d(${x + radius - 7}px, ${y + radius - 7}px, ${z}px)
+            rotateY(${rotateY}deg)
+            rotateX(${rotateX}deg)
+          `;
+          
+          tile.style.setProperty('--shimmer-delay', `${Math.random() * 2}s`);
+          tile.style.setProperty('--glint-delay', `${Math.random() * 3}s`);
+          
+          discoBall.appendChild(tile);
+        }
+      }
+    }
+    
+    // Initialize disco ball on load
+    document.addEventListener('DOMContentLoaded', () => {
+      generateDiscoBall('disco-ball-3d');
+    });
+
     const API = 'http://localhost:3000/api';
     const SESSION_KEY = 'memoryBox_session';
     
@@ -804,7 +928,6 @@
     function updateUI() {
       const count = photosData.length;
   
-      boxImage.src = isBoxOpen ? "Images/box-open.png" : "Images/box-close.png";
       boxImage.classList.toggle("box-open", isBoxOpen);
       photoLayer.classList.toggle("photos-hidden", !isBoxOpen);
   
@@ -812,14 +935,26 @@
       if (isBoxOpen) {
         // Sync card states with data before showing
         syncCardsWithData();
+        
+        // Start spinning the disco ball
+        boxImage.classList.add('spinning');
+        
         cards.forEach((card, index) => {
           const angle = +card.dataset.angle;
           const radius = +card.dataset.radius;
           setTimeout(() => {
             placeCard(card, angle, radius, true);
+            
+            // Stop spinning after the last photo appears
+            if (index === cards.length - 1) {
+              setTimeout(() => {
+                boxImage.classList.remove('spinning');
+              }, 600);
+            }
           }, index * 80);
         });
       } else {
+        boxImage.classList.remove('spinning');
         cards.forEach(card => card.classList.remove('visible'));
       }
   
@@ -832,7 +967,7 @@
       } else if (!isBoxOpen) {
         const memoryWord = count === 1 ? "memory" : "memories";
         emptyState.textContent = isOwnBox
-          ? `You have ${count} ${memoryWord}… open your box ✨`
+          ? `You have ${count} ${memoryWord} 💌`
           : `${displayOwnerName} has ${count} ${memoryWord}… open the box ✨`;
         emptyState.classList.remove("hidden");
       } else {
