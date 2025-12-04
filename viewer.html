@@ -133,7 +133,7 @@
 
     .photo-card {
       position: absolute;
-      width: 140px;
+      /* width set dynamically via JS based on image aspect ratio */
       background: var(--cream-light);
       border-radius: 4px;
       box-shadow: 
@@ -174,8 +174,9 @@
     }
 
     .photo-card img {
+      display: block;
       width: 100%;
-      height: 100px;
+      height: 100%;
       object-fit: cover;
       border-radius: 2px;
     }
@@ -489,10 +490,55 @@
         card.dataset.src = photoData.imageData;
 
         const captionClass = photoData.caption ? 'caption-preview' : 'caption-preview empty';
-        card.innerHTML = `
-          <img src="${photoData.imageData}">
-          <div class="${captionClass}">${photoData.caption || ''}</div>
-        `;
+        
+        // Create image element to get natural dimensions
+        const img = document.createElement('img');
+        img.src = photoData.imageData;
+        
+        // Calculate card size based on image aspect ratio
+        img.onload = function() {
+          const naturalW = img.naturalWidth;
+          const naturalH = img.naturalHeight;
+          const aspectRatio = naturalW / naturalH;
+          
+          // Base area for cards (adjusts size proportionally)
+          const baseArea = 14000;
+          const captionHeight = photoData.caption ? 24 : 0;
+          const padding = 16;
+          
+          // Calculate dimensions maintaining aspect ratio
+          let cardW, cardH;
+          if (aspectRatio > 1) {
+            // Landscape: wider card
+            cardW = Math.sqrt(baseArea * aspectRatio);
+            cardH = cardW / aspectRatio;
+          } else {
+            // Portrait or square: taller card
+            cardH = Math.sqrt(baseArea / aspectRatio);
+            cardW = cardH * aspectRatio;
+          }
+          
+          // Clamp to reasonable sizes
+          cardW = Math.max(100, Math.min(180, cardW));
+          cardH = Math.max(80, Math.min(160, cardH));
+          
+          card.style.width = `${cardW + padding}px`;
+          card.style.height = `${cardH + padding + captionHeight}px`;
+          
+          img.style.width = `${cardW}px`;
+          img.style.height = `${cardH}px`;
+        };
+        
+        // Fallback size
+        card.style.width = '156px';
+        card.style.height = '124px';
+        
+        const captionDiv = document.createElement('div');
+        captionDiv.className = captionClass;
+        captionDiv.textContent = photoData.caption || '';
+        
+        card.appendChild(img);
+        card.appendChild(captionDiv);
 
         photosContainer.appendChild(card);
         photoCards.push(card);

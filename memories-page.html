@@ -57,27 +57,27 @@
     .scene::before { top: 20px; left: 20px; }
     .scene::after { bottom: 20px; right: 20px; transform: rotate(180deg); }
 
-    .memory-box-image {
+    .memory-box-emoji {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      max-width: 260px;
-      width: 40vw;
+      font-size: 8rem;
       filter: drop-shadow(0 12px 30px rgba(114, 47, 55, 0.25));
       pointer-events: auto;
       cursor: pointer;
       z-index: 5;
-      transition: opacity 0.25s ease, transform 0.2s ease;
+      transition: opacity 0.4s ease, transform 0.4s ease;
     }
 
-    .memory-box-image:hover {
-      transform: translate(-50%, -50%) scale(1.03);
+    .memory-box-emoji:hover {
+      transform: translate(-50%, -50%) scale(1.1);
     }
 
-    .memory-box-image.box-open {
+    .memory-box-emoji.hidden {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.5);
       pointer-events: none;
-      cursor: default;
     }
 
     .photo-layer {
@@ -95,7 +95,7 @@
 
     .photo-card {
       position: absolute;
-      width: 140px;
+      /* width set dynamically via JS based on image aspect ratio */
       background: var(--cream-light);
       border-radius: 4px;
       box-shadow: 
@@ -131,8 +131,9 @@
     }
 
     .photo-card img {
+      display: block;
       width: 100%;
-      height: 100px;
+      height: 100%;
       object-fit: cover;
       border-radius: 2px;
     }
@@ -606,9 +607,9 @@
       z-index: 10;
     }
 
-    .browse-link, .profile-link {
+    .browse-link {
       position: absolute;
-      top: 24px;
+      top: 80px;
       right: 28px;
       z-index: 10;
       padding: 10px 20px;
@@ -622,18 +623,14 @@
       transition: all 0.2s ease;
     }
 
-    .browse-link:hover, .profile-link:hover {
+    .browse-link:hover {
       border-color: var(--burgundy);
       background: rgba(114, 47, 55, 0.05);
     }
 
-    .profile-link {
-      top: 80px;
-    }
-
     .logout-btn {
       position: absolute;
-      top: 136px;
+      top: 24px;
       right: 28px;
       z-index: 10;
       padding: 10px 20px;
@@ -659,14 +656,10 @@
   <div class="scene">
 
     <div id="greeting" class="greeting">Hello, Friend ✨</div>
-    <a href="browse.html" class="browse-link">Browse Boxes</a>
-    <a href="profile.html" class="profile-link">Profile</a>
+    <a href="browse.html" class="browse-link">👥 Browse Boxes</a>
     <button id="logout-btn" class="logout-btn">Logout</button>
 
-    <img id="box-image"
-      src="Images/box-close.png"
-      class="memory-box-image"
-    >
+    <span id="box-emoji" class="memory-box-emoji">🪩</span>
 
     <div id="empty-state" class="empty-state-bubble">
       Your box is empty… add your first memory 💌
@@ -734,7 +727,7 @@
     const isOwnBox = viewingUserId === currentUserId;
     let displayOwnerName = userName;
   
-    const boxImage       = document.getElementById("box-image");
+    const boxEmoji       = document.getElementById("box-emoji");
     const photoLayer     = document.getElementById("photo-layer");
     const input          = document.getElementById("photo-input");
     const emptyState     = document.getElementById("empty-state");
@@ -809,8 +802,7 @@
     function updateUI() {
       const count = photosData.length;
   
-      boxImage.src = isBoxOpen ? "Images/box-open.png" : "Images/box-close.png";
-      boxImage.classList.toggle("box-open", isBoxOpen);
+      boxEmoji.classList.toggle("hidden", isBoxOpen);
       photoLayer.classList.toggle("photos-hidden", !isBoxOpen);
   
       const cards = [...photoLayer.children];
@@ -956,10 +948,56 @@
       if (group) card.dataset.group = group;
 
       const captionClass = caption ? 'caption-preview' : 'caption-preview empty';
-      card.innerHTML = `
-        <img src="${imageData}">
-        <div class="${captionClass}">${caption || ''}</div>
-      `;
+      
+      // Create image element to get natural dimensions
+      const img = document.createElement('img');
+      img.src = imageData;
+      
+      // Calculate card size based on image aspect ratio
+      img.onload = function() {
+        const naturalW = img.naturalWidth;
+        const naturalH = img.naturalHeight;
+        const aspectRatio = naturalW / naturalH;
+        
+        // Base area for cards (adjusts size proportionally)
+        const baseArea = 14000;
+        const captionHeight = caption ? 24 : 0;
+        const padding = 16; // 8px padding on each side
+        
+        // Calculate dimensions maintaining aspect ratio
+        let cardW, cardH;
+        if (aspectRatio > 1) {
+          // Landscape: wider card
+          cardW = Math.sqrt(baseArea * aspectRatio);
+          cardH = cardW / aspectRatio;
+        } else {
+          // Portrait or square: taller card
+          cardH = Math.sqrt(baseArea / aspectRatio);
+          cardW = cardH * aspectRatio;
+        }
+        
+        // Clamp to reasonable sizes
+        cardW = Math.max(100, Math.min(180, cardW));
+        cardH = Math.max(80, Math.min(160, cardH));
+        
+        card.style.width = `${cardW + padding}px`;
+        card.style.height = `${cardH + padding + captionHeight}px`;
+        
+        // Set image container size
+        img.style.width = `${cardW}px`;
+        img.style.height = `${cardH}px`;
+      };
+      
+      // Fallback size if image fails to load
+      card.style.width = '156px';
+      card.style.height = '124px';
+      
+      const captionDiv = document.createElement('div');
+      captionDiv.className = captionClass;
+      captionDiv.textContent = caption || '';
+      
+      card.appendChild(img);
+      card.appendChild(captionDiv);
       
       card.addEventListener('click', () => handlePhotoClick(id));
 
@@ -1057,8 +1095,8 @@
   
     // ============ BOX CONTROLS ============
   
-    // Click on closed box image to open
-    boxImage.addEventListener("click", () => {
+    // Click on disco ball emoji to open
+    boxEmoji.addEventListener("click", () => {
       if (!isBoxOpen && photosData.length > 0) {
         isBoxOpen = true;
         updateUI();
