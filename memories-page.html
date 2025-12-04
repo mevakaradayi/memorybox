@@ -57,27 +57,27 @@
     .scene::before { top: 20px; left: 20px; }
     .scene::after { bottom: 20px; right: 20px; transform: rotate(180deg); }
 
-    .memory-box-emoji {
+    .memory-box-image {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 8rem;
+      max-width: 260px;
+      width: 40vw;
       filter: drop-shadow(0 12px 30px rgba(114, 47, 55, 0.25));
       pointer-events: auto;
       cursor: pointer;
       z-index: 5;
-      transition: opacity 0.4s ease, transform 0.4s ease;
+      transition: opacity 0.25s ease, transform 0.2s ease;
     }
 
-    .memory-box-emoji:hover {
-      transform: translate(-50%, -50%) scale(1.1);
+    .memory-box-image:hover {
+      transform: translate(-50%, -50%) scale(1.03);
     }
 
-    .memory-box-emoji.hidden {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.5);
+    .memory-box-image.box-open {
       pointer-events: none;
+      cursor: default;
     }
 
     .photo-layer {
@@ -95,7 +95,7 @@
 
     .photo-card {
       position: absolute;
-      /* width set dynamically via JS based on image aspect ratio */
+      width: 140px;
       background: var(--cream-light);
       border-radius: 4px;
       box-shadow: 
@@ -131,9 +131,8 @@
     }
 
     .photo-card img {
-      display: block;
       width: 100%;
-      height: 100%;
+      height: 100px;
       object-fit: cover;
       border-radius: 2px;
     }
@@ -659,7 +658,10 @@
     <a href="browse.html" class="browse-link">👥 Browse Boxes</a>
     <button id="logout-btn" class="logout-btn">Logout</button>
 
-    <span id="box-emoji" class="memory-box-emoji">🪩</span>
+    <img id="box-image"
+      src="Images/box-close.png"
+      class="memory-box-image"
+    >
 
     <div id="empty-state" class="empty-state-bubble">
       Your box is empty… add your first memory 💌
@@ -727,7 +729,7 @@
     const isOwnBox = viewingUserId === currentUserId;
     let displayOwnerName = userName;
   
-    const boxEmoji       = document.getElementById("box-emoji");
+    const boxImage       = document.getElementById("box-image");
     const photoLayer     = document.getElementById("photo-layer");
     const input          = document.getElementById("photo-input");
     const emptyState     = document.getElementById("empty-state");
@@ -802,7 +804,8 @@
     function updateUI() {
       const count = photosData.length;
   
-      boxEmoji.classList.toggle("hidden", isBoxOpen);
+      boxImage.src = isBoxOpen ? "Images/box-open.png" : "Images/box-close.png";
+      boxImage.classList.toggle("box-open", isBoxOpen);
       photoLayer.classList.toggle("photos-hidden", !isBoxOpen);
   
       const cards = [...photoLayer.children];
@@ -948,56 +951,10 @@
       if (group) card.dataset.group = group;
 
       const captionClass = caption ? 'caption-preview' : 'caption-preview empty';
-      
-      // Create image element to get natural dimensions
-      const img = document.createElement('img');
-      img.src = imageData;
-      
-      // Calculate card size based on image aspect ratio
-      img.onload = function() {
-        const naturalW = img.naturalWidth;
-        const naturalH = img.naturalHeight;
-        const aspectRatio = naturalW / naturalH;
-        
-        // Base area for cards (adjusts size proportionally)
-        const baseArea = 14000;
-        const captionHeight = caption ? 24 : 0;
-        const padding = 16; // 8px padding on each side
-        
-        // Calculate dimensions maintaining aspect ratio
-        let cardW, cardH;
-        if (aspectRatio > 1) {
-          // Landscape: wider card
-          cardW = Math.sqrt(baseArea * aspectRatio);
-          cardH = cardW / aspectRatio;
-        } else {
-          // Portrait or square: taller card
-          cardH = Math.sqrt(baseArea / aspectRatio);
-          cardW = cardH * aspectRatio;
-        }
-        
-        // Clamp to reasonable sizes
-        cardW = Math.max(100, Math.min(180, cardW));
-        cardH = Math.max(80, Math.min(160, cardH));
-        
-        card.style.width = `${cardW + padding}px`;
-        card.style.height = `${cardH + padding + captionHeight}px`;
-        
-        // Set image container size
-        img.style.width = `${cardW}px`;
-        img.style.height = `${cardH}px`;
-      };
-      
-      // Fallback size if image fails to load
-      card.style.width = '156px';
-      card.style.height = '124px';
-      
-      const captionDiv = document.createElement('div');
-      captionDiv.className = captionClass;
-      captionDiv.textContent = caption || '';
-      
-      card.appendChild(img);
-      card.appendChild(captionDiv);
+      card.innerHTML = `
+        <img src="${imageData}">
+        <div class="${captionClass}">${caption || ''}</div>
+      `;
       
       card.addEventListener('click', () => handlePhotoClick(id));
 
@@ -1095,8 +1052,8 @@
   
     // ============ BOX CONTROLS ============
   
-    // Click on disco ball emoji to open
-    boxEmoji.addEventListener("click", () => {
+    // Click on closed box image to open
+    boxImage.addEventListener("click", () => {
       if (!isBoxOpen && photosData.length > 0) {
         isBoxOpen = true;
         updateUI();
