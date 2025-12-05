@@ -638,7 +638,7 @@
 
     .browse-link {
       position: absolute;
-      top: 80px;
+      top: 24px;
       right: 28px;
       z-index: 10;
       padding: 10px 20px;
@@ -657,9 +657,30 @@
       background: rgba(114, 47, 55, 0.05);
     }
 
+    .profile-link {
+      position: absolute;
+      top: 72px;
+      right: 28px;
+      z-index: 10;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem;
+      color: var(--burgundy);
+      text-decoration: none;
+      background: var(--cream-light);
+      border: 1px solid var(--dusty-pink);
+      transition: all 0.2s ease;
+    }
+
+    .profile-link:hover {
+      border-color: var(--burgundy);
+      background: rgba(114, 47, 55, 0.05);
+    }
+
     .logout-btn {
       position: absolute;
-      top: 24px;
+      top: 120px;
       right: 28px;
       z-index: 10;
       padding: 10px 20px;
@@ -686,6 +707,7 @@
 
     <div id="greeting" class="greeting">Hello, Friend ✨</div>
     <a href="browse.html" class="browse-link">Browse Others' Boxes</a>
+    <a href="profile.html" class="profile-link">Profile</a>
     <button id="logout-btn" class="logout-btn">Logout</button>
 
     <div id="box-image" class="memory-box-image">
