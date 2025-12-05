@@ -103,73 +103,11 @@
               drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
     }
 
-    /* 3D Disco Ball Styles */
-    .disco-ball-3d {
-      width: 160px;
-      height: 160px;
-      position: relative;
-      transform-style: preserve-3d;
-    }
-
-    .disco-ball-3d .tile {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      background: linear-gradient(135deg, 
-        #fff 0%, 
-        #e8e8e8 20%,
-        #c0c0c0 40%, 
-        #a0a0a0 60%, 
-        #c0c0c0 80%, 
-        #fff 100%);
-      border: 0.3px solid rgba(80, 80, 80, 0.4);
-      backface-visibility: visible;
-      transform-style: preserve-3d;
-      border-radius: 1px;
-    }
-
-    .disco-ball-3d .tile::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(45deg, 
-        transparent 0%, 
-        rgba(255, 255, 255, 0.9) 50%, 
-        transparent 100%);
-      opacity: 0;
-      animation: tile-glint 3s ease-in-out infinite;
-      animation-delay: var(--glint-delay, 0s);
-    }
-
-    @keyframes tile-glint {
-      0%, 100% { opacity: 0; }
-      50% { opacity: 0.7; }
-    }
-
-    /* 3D Disco ball spinning animation */
-    .memory-box-image.spinning .disco-ball-3d {
-      animation: disco-ball-rotate 4s linear infinite;
-    }
-
-    @keyframes disco-ball-rotate {
-      from { transform: rotateY(0deg); }
-      to { transform: rotateY(360deg); }
-    }
-
-    .memory-box-image.spinning {
-      filter: drop-shadow(0 8px 24px rgba(114, 47, 55, 0.2))
-              drop-shadow(0 0 50px rgba(255, 255, 255, 0.5))
-              drop-shadow(0 0 80px rgba(212, 165, 165, 0.4));
-    }
-
-    .memory-box-image.spinning .tile {
-      animation: tile-shimmer 2s ease-in-out infinite;
-      animation-delay: var(--shimmer-delay, 0s);
-    }
-
-    @keyframes tile-shimmer {
-      0%, 100% { filter: brightness(1); }
-      50% { filter: brightness(1.4); }
+    /* Box Image Styles */
+    .memory-box-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     .memory-title {
@@ -465,14 +403,14 @@
   <!-- Navigation -->
   <nav class="nav-bar">
     <a href="memories-page.html" class="nav-link">My Memories</a>
-    <a href="browse.html" class="nav-link">👥 Browse</a>
+    <a href="browse.html" class="nav-link">Browse Others' Boxes</a>
     <a href="login.html" class="nav-link" onclick="localStorage.removeItem('memoryBox_session')">Logout</a>
   </nav>
 
   <!-- BOX + TITLE -->
   <div class="memory-box-wrapper" id="memoryBox">
     <div class="memory-box-image" id="memoryBoxImage">
-      <div class="disco-ball-3d" id="disco-ball-3d"></div>
+      <img id="box-img" src="Images/box_close.png" alt="Memory Box">
     </div>
     <div class="memory-title" id="boxTitle">Memory Box</div>
     <div class="memory-subtitle" id="clickText">click to open</div>
@@ -482,7 +420,7 @@
   <div class="memory-photos" id="memoryPhotos"></div>
 
   <!-- Close Box Button -->
-  <button id="closeButton">✕ Hide Memories</button>
+  <button id="closeButton">✕ Close the Box</button>
 
   <!-- Modal for clicked photos -->
   <div id="photoModal" class="photo-modal-backdrop">
@@ -497,49 +435,8 @@
 
   <script>
     const API = 'http://localhost:3000/api';
-
-    // Generate 3D Disco Ball
-    function generateDiscoBall(containerId) {
-      const discoBall = document.getElementById(containerId);
-      if (!discoBall) return;
-      
-      const radius = 80;
-      const rows = 10;
-      
-      for (let i = 0; i < rows; i++) {
-        const phi = (Math.PI / rows) * i;
-        const y = radius * Math.cos(phi);
-        const ringRadius = radius * Math.sin(phi);
-        const tilesInRing = Math.max(1, Math.floor(16 * Math.sin(phi)));
-        
-        for (let j = 0; j < tilesInRing; j++) {
-          const theta = (2 * Math.PI / tilesInRing) * j;
-          const x = ringRadius * Math.cos(theta);
-          const z = ringRadius * Math.sin(theta);
-          
-          const tile = document.createElement('div');
-          tile.className = 'tile';
-          
-          const rotateY = (theta * 180 / Math.PI);
-          const rotateX = (90 - phi * 180 / Math.PI);
-          
-          tile.style.transform = `
-            translate3d(${x + radius - 7}px, ${y + radius - 7}px, ${z}px)
-            rotateY(${rotateY}deg)
-            rotateX(${rotateX}deg)
-          `;
-          
-          tile.style.setProperty('--shimmer-delay', `${Math.random() * 2}s`);
-          tile.style.setProperty('--glint-delay', `${Math.random() * 3}s`);
-          
-          discoBall.appendChild(tile);
-        }
-      }
-    }
   
     document.addEventListener("DOMContentLoaded", async function () {
-      // Initialize disco ball
-      generateDiscoBall('disco-ball-3d');
       // Get box owner from URL parameter
       const urlParams = new URLSearchParams(window.location.search);
       const userId = urlParams.get('userId');
@@ -699,6 +596,9 @@
         boxWrapper.classList.add("open");
         clickText.classList.add("hidden");
 
+        // Swap to open box image
+        document.getElementById('box-img').src = 'Images/box_open.png';
+
         closeBtn.classList.add("visible");
         photosContainer.classList.add("active");
 
@@ -708,9 +608,8 @@
       closeBtn.addEventListener("click", () => {
         closeBtn.classList.remove("visible");
 
-        // Stop spinning the disco ball
-        const boxImg = document.getElementById('memoryBoxImage');
-        if (boxImg) boxImg.classList.remove('spinning');
+        // Swap back to closed box image
+        document.getElementById('box-img').src = 'Images/box_close.png';
 
         // Cancel any pending photo animations
         photoTimeouts.forEach(t => clearTimeout(t));
@@ -809,21 +708,10 @@
         photoTimeouts = [];
         const totalCards = photoCards.length;
         
-        // Start spinning the disco ball
-        const boxImg = document.getElementById('memoryBoxImage');
-        if (boxImg) boxImg.classList.add('spinning');
-        
         photoCards.forEach((card, index) => {
           const timeoutId = setTimeout(() => {
             if (!isOpen) return;
             placeCard(card, index, totalCards, true);
-            
-            // Stop spinning after the last photo appears
-            if (index === totalCards - 1) {
-              setTimeout(() => {
-                if (boxImg) boxImg.classList.remove('spinning');
-              }, 600);
-            }
           }, index * 80);
           photoTimeouts.push(timeoutId);
         });
