@@ -526,6 +526,37 @@
   
       let isOpen = false;
       let photoTimeouts = [];
+      let calculatedPositions = []; // Store calculated positions for collision detection
+
+      // Get dynamic card size based on photo count
+      function getCardSize(totalPhotos) {
+        if (totalPhotos > 60) {
+          return { width: 100, height: 85, imgHeight: 65 };
+        } else if (totalPhotos > 45) {
+          return { width: 110, height: 90, imgHeight: 70 };
+        } else {
+          return { width: 140, height: 120, imgHeight: 100 };
+        }
+      }
+
+      // Check if a position would overlap too much with already calculated positions
+      function checkOverlapWithPositions(x, y, cardWidth, cardHeight, positions) {
+        const threshold = 0.55; // If more than 55% overlapped, it's a problem
+        
+        for (const pos of positions) {
+          if (!pos) continue;
+          // Calculate overlap area
+          const overlapX = Math.max(0, Math.min(x + cardWidth, pos.x + cardWidth) - Math.max(x, pos.x));
+          const overlapY = Math.max(0, Math.min(y + cardHeight, pos.y + cardHeight) - Math.max(y, pos.y));
+          const overlapArea = overlapX * overlapY;
+          const cardArea = cardWidth * cardHeight;
+          
+          if (overlapArea / cardArea > threshold) {
+            return true; // Too much overlap
+          }
+        }
+        return false;
+      }
 
       // Show empty state if no photos
       if (photoCards.length === 0) {
@@ -633,56 +664,104 @@
         const cx = rect.width / 2;
         const cy = rect.height / 2;
         
-        const cardWidth = 140;
-        const cardHeight = 120;
+        // Dynamic card sizing based on total photos
+        const size = getCardSize(totalCards);
+        const cardWidth = size.width;
+        const cardHeight = size.height;
+        
         const padding = 20;
+        const rotationMargin = 35; // Extra space for rotated cards at edges
         const boxSize = 140;
         
-        const overlapX = 40;
-        const overlapY = 15;
-        const effectiveCardWidth = cardWidth - overlapX;
-        const effectiveCardHeight = cardHeight - overlapY;
+        // Calculate grid dimensions - less overlap for cleaner layout (matching memories-page)
+        const spacingX = cardWidth + 15; // Space between cards horizontally
+        const spacingY = cardHeight + 10; // Space between cards vertically
         
-        const availableWidth = rect.width - padding * 2 - cardWidth;
-        const availableHeight = rect.height - padding * 2 - 150 - cardHeight;
+        // Calculate how many cards fit per row
+        const availableWidth = rect.width - (padding + rotationMargin) * 2;
+        const availableHeight = rect.height - (padding + rotationMargin) * 2 - 150; // Room for nav and controls
         
-        const cardsPerRow = Math.max(4, Math.floor(availableWidth / effectiveCardWidth) + 1);
+        const cardsPerRow = Math.max(4, Math.floor(availableWidth / spacingX));
         
+        // Position in grid order
         const row = Math.floor(cardIndex / cardsPerRow);
         const col = cardIndex % cardsPerRow;
         
-        const rowOffset = (row % 2) * (effectiveCardWidth * 0.6);
+        // Alternate row starting position for more natural cascade
+        const rowOffset = (row % 2) * (spacingX * 0.4);
         
-        let x = padding + col * effectiveCardWidth + rowOffset;
-        let y = padding + 70 + row * effectiveCardHeight;
+        let x = padding + rotationMargin + col * spacingX + rowOffset;
+        let y = padding + 80 + rotationMargin + row * spacingY;
         
-        const jitterX = (Math.sin(cardIndex * 2.5) * 20) + (Math.cos(cardIndex * 1.7) * 15);
-        const jitterY = (Math.cos(cardIndex * 3.2) * 18) + (Math.sin(cardIndex * 2.1) * 12);
+        // Add subtle jitter for natural look
+        const jitterX = (Math.sin(cardIndex * 2.5) * 12) + (Math.cos(cardIndex * 1.7) * 8);
+        const jitterY = (Math.cos(cardIndex * 3.2) * 10) + (Math.sin(cardIndex * 2.1) * 6);
         x += jitterX;
         y += jitterY;
         
+        // Avoid the center box area
         const cardCenterX = x + cardWidth / 2;
         const cardCenterY = y + cardHeight / 2;
         const distFromCenter = Math.sqrt(Math.pow(cardCenterX - cx, 2) + Math.pow(cardCenterY - cy, 2));
         
-        if (distFromCenter < boxSize + 30) {
-          const angle = Math.atan2(cardCenterY - cy, cardCenterX - cx);
-          const pushDist = boxSize + 40 - distFromCenter;
-          x += Math.cos(angle) * pushDist;
-          y += Math.sin(angle) * pushDist;
+        if (distFromCenter < boxSize + 40) {
+          // Push away from center box
+          const pushAngle = Math.atan2(cardCenterY - cy, cardCenterX - cx);
+          const pushDist = boxSize + 50 - distFromCenter;
+          x += Math.cos(pushAngle) * pushDist;
+          y += Math.sin(pushAngle) * pushDist;
         }
         
-        if (x > rect.width - cardWidth - padding) {
-          x = padding + ((x - padding) % (rect.width - cardWidth - padding * 2));
-        }
-        if (y > rect.height - cardHeight - padding - 100) {
-          y = padding + 70 + ((y - padding - 70) % (availableHeight));
+        // Bounds
+        const minX = padding + rotationMargin;
+        const maxX = rect.width - cardWidth - padding - rotationMargin;
+        const minY = padding + 80 + rotationMargin;
+        const maxY = rect.height - cardHeight - padding - 100 - rotationMargin;
+        
+        // Final bounds check
+        x = Math.max(minX, Math.min(x, maxX));
+        y = Math.max(minY, Math.min(y, maxY));
+        
+        // Collision detection - find non-overlapping position
+        let attempts = 0;
+        const maxAttempts = 20;
+        
+        while (checkOverlapWithPositions(x, y, cardWidth, cardHeight, calculatedPositions) && attempts < maxAttempts) {
+          // Shift position to find a non-overlapping spot
+          x += spacingX * 0.6 + Math.random() * 20;
+          
+          // Wrap to next row if going off right edge
+          if (x > maxX) {
+            x = minX + Math.random() * 30;
+            y += spacingY * 0.8;
+          }
+          
+          // Wrap to top if going off bottom
+          if (y > maxY) {
+            y = minY + Math.random() * 20;
+            // Add some horizontal offset when wrapping to avoid same column
+            x += spacingX * 0.3;
+          }
+          
+          // Keep within bounds
+          x = Math.max(minX, Math.min(x, maxX));
+          y = Math.max(minY, Math.min(y, maxY));
+          
+          attempts++;
         }
         
-        x = Math.max(padding, Math.min(x, rect.width - cardWidth - padding));
-        y = Math.max(padding + 70, Math.min(y, rect.height - cardHeight - padding - 100));
+        // Store this position for future collision checks
+        calculatedPositions[cardIndex] = { x, y };
         
+        // Z-index increases with card order so later photos appear on top
         const baseZIndex = 5 + cardIndex;
+        
+        // Apply dynamic size to card
+        card.style.width = `${cardWidth}px`;
+        const img = card.querySelector('img');
+        if (img) {
+          img.style.height = `${size.imgHeight}px`;
+        }
         
         if (animate) {
           card.style.left = `${cx - cardWidth/2}px`;
@@ -706,6 +785,7 @@
 
       function placePhotos() {
         photoTimeouts = [];
+        calculatedPositions = []; // Reset positions for fresh collision detection
         const totalCards = photoCards.length;
         
         photoCards.forEach((card, index) => {
@@ -720,6 +800,7 @@
       // Handle window resize
       window.addEventListener("resize", () => {
         if (isOpen) {
+          calculatedPositions = []; // Reset positions for fresh collision detection on resize
           photoCards.forEach((card, index) => {
             placeCard(card, index, photoCards.length, false);
             card.classList.add('visible');
