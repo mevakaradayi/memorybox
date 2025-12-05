@@ -478,11 +478,12 @@
     }
 
     .pair-btn, .unpair-btn {
-      padding: 10px 18px;
+      padding: 8px 14px;
       border-radius: 4px;
       font-family: 'Cormorant Garamond', serif;
       cursor: pointer;
       white-space: nowrap;
+      font-size: 0.85rem;
       background: transparent;
       border: 1px solid var(--dusty-pink);
       color: var(--burgundy);
@@ -543,14 +544,14 @@
       left: 50%;
       bottom: 24px;
       transform: translateX(-50%);
-      padding: 14px 24px;
+      padding: 12px 18px;
       border-radius: 8px;
       background: var(--cream-light);
       border: 1px solid var(--dusty-pink);
       display: flex;
       align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
+      gap: 10px;
+      flex-wrap: nowrap;
       justify-content: center;
       z-index: 20;
       box-shadow: 0 4px 16px rgba(114, 47, 55, 0.12);
@@ -559,12 +560,12 @@
     #photo-input { display: none; }
 
     .upload-button, .open-button, .close-button {
-      padding: 10px 18px;
+      padding: 8px 14px;
       border-radius: 4px;
       font-family: 'Cormorant Garamond', serif;
       cursor: pointer;
       white-space: nowrap;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       letter-spacing: 0.5px;
       transition: all 0.2s ease;
     }
@@ -750,6 +751,114 @@
       font-family: 'Cormorant Garamond', serif;
       letter-spacing: 0.5px;
     }
+
+    /* Publish Mode Button */
+    .publish-mode-btn {
+      padding: 8px 14px;
+      border-radius: 4px;
+      font-family: 'Cormorant Garamond', serif;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 0.85rem;
+      background: transparent;
+      border: 1px solid #4CAF50;
+      color: #2E7D32;
+      transition: all 0.2s ease;
+    }
+
+    .publish-mode-btn:hover {
+      background: rgba(76, 175, 80, 0.1);
+    }
+
+    .publish-mode-btn.active {
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      border: none;
+      color: white;
+    }
+
+    /* Publish Mode Banner */
+    .publish-mode-banner {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      color: white;
+      padding: 12px 28px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      z-index: 30;
+      box-shadow: 0 8px 24px rgba(46, 125, 50, 0.35);
+      display: none;
+      align-items: center;
+      gap: 14px;
+      font-family: 'Cormorant Garamond', serif;
+    }
+
+    .publish-mode-banner.active {
+      display: flex;
+    }
+
+    .confirm-publish-btn {
+      background: white;
+      color: #2E7D32;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-family: 'Cormorant Garamond', serif;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+
+    .confirm-publish-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .confirm-publish-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .cancel-publish-btn {
+      background: transparent;
+      color: white;
+      border: 1px solid rgba(255,255,255,0.5);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-family: 'Cormorant Garamond', serif;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .cancel-publish-btn:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    /* Selection for publish mode */
+    .photo-card.selected-for-publish {
+      outline: 3px solid #4CAF50;
+      outline-offset: 3px;
+      box-shadow: 0 0 20px rgba(76, 175, 80, 0.4), 0 12px 22px rgba(0, 0, 0, 0.15);
+    }
+
+    .photo-card .publish-selection-badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #4CAF50;
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
@@ -776,6 +885,14 @@
       <span id="selection-count" class="selection-count">0 selected</span>
       <button id="confirm-pair-btn" class="confirm-pair-btn" disabled>Pair Memories</button>
       <button id="cancel-pair-btn" class="cancel-pair-btn">Cancel</button>
+    </div>
+
+    <!-- Publish Mode Banner -->
+    <div id="publish-banner" class="publish-mode-banner">
+      🌐 Select memories to publish
+      <span id="publish-selection-count" class="selection-count">0 selected</span>
+      <button id="confirm-publish-btn" class="confirm-publish-btn" disabled>Publish Selected</button>
+      <button id="cancel-publish-btn" class="cancel-publish-btn">Cancel</button>
     </div>
 
     <!-- Photo Modal -->
@@ -809,6 +926,7 @@
       <button id="close-box" class="close-button disabled">Close Your Box</button>
 
       <button id="pair-mode-btn" class="pair-btn">💕 Pair Memories</button>
+      <button id="publish-mode-btn" class="publish-mode-btn">🌐 Publish Memories</button>
     </div>
   </div>
 
@@ -843,6 +961,8 @@
     let photosData = []; // Store photo data from server
     let isPairingMode = false;
     let selectedForPairing = []; // Photo IDs selected for pairing
+    let isPublishMode = false;
+    let selectedForPublish = []; // Photo IDs selected for publishing
   
     // ============ API FUNCTIONS ============
     
@@ -1182,6 +1302,8 @@
     function handlePhotoClick(photoId) {
       if (isPairingMode) {
         togglePhotoSelection(photoId);
+      } else if (isPublishMode) {
+        togglePublishSelection(photoId);
       } else {
         openPhotoModal(photoId);
       }
@@ -1290,6 +1412,7 @@
     closeBoxBtn.addEventListener("click", () => {
       isBoxOpen = false;
       if (isPairingMode) exitPairingMode();
+      if (isPublishMode) exitPublishMode();
       updateUI();
     });
   
@@ -1641,6 +1764,181 @@
     unpairBtn.addEventListener('click', unpairPhotos);
     deletePhotoBtn.addEventListener('click', deletePhoto);
 
+    // ============ PUBLISH MODE ============
+
+    const publishModeBtn = document.getElementById('publish-mode-btn');
+    const publishBanner = document.getElementById('publish-banner');
+    const confirmPublishBtn = document.getElementById('confirm-publish-btn');
+    const cancelPublishBtn = document.getElementById('cancel-publish-btn');
+
+    function togglePublishSelection(photoId) {
+      console.log('togglePublishSelection called for:', photoId);
+      
+      // Check if this photo is already published
+      const photo = photosData.find(p => p.id === photoId);
+      if (photo && photo.published) {
+        console.log('Photo already published, skipping');
+        return; // Don't allow selecting already published photos
+      }
+      
+      const index = selectedForPublish.indexOf(photoId);
+      const card = photoLayer.querySelector(`[data-id="${photoId}"]`);
+      
+      if (index > -1) {
+        // Deselect
+        selectedForPublish.splice(index, 1);
+        card?.classList.remove('selected-for-publish');
+        // Remove selection badge
+        const badge = card?.querySelector('.publish-selection-badge');
+        if (badge) badge.remove();
+      } else {
+        // Select
+        selectedForPublish.push(photoId);
+        card?.classList.add('selected-for-publish');
+        // Add selection badge
+        if (card && !card.querySelector('.publish-selection-badge')) {
+          const badge = document.createElement('span');
+          badge.className = 'publish-selection-badge';
+          badge.textContent = '✓';
+          card.appendChild(badge);
+        }
+      }
+      
+      console.log('Selected photos:', selectedForPublish);
+      updatePublishUI();
+    }
+
+    function updatePublishUI() {
+      const count = selectedForPublish.length;
+      document.getElementById('publish-selection-count').textContent = `${count} selected`;
+      document.getElementById('confirm-publish-btn').disabled = count < 1;
+    }
+
+    function enterPublishMode() {
+      // Get unpublished photos count
+      const unpublishedCount = photosData.filter(p => !p.published).length;
+      
+      if (unpublishedCount === 0) {
+        alert('All your photos are already published!');
+        return;
+      }
+      
+      // If box is closed, open it first then enter publish mode
+      if (!isBoxOpen) {
+        isBoxOpen = true;
+        updateUI();
+        // Wait for photos to animate out before entering publish mode
+        setTimeout(() => {
+          activatePublishMode();
+        }, 400);
+        return;
+      }
+      
+      activatePublishMode();
+    }
+    
+    function activatePublishMode() {
+      isPublishMode = true;
+      selectedForPublish = [];
+      publishModeBtn.classList.add('active');
+      publishBanner.classList.add('active');
+      
+      // Add publish-mode class to unpublished cards only
+      [...photoLayer.children].forEach(card => {
+        const photoId = card.dataset.id;
+        const photo = photosData.find(p => p.id === photoId);
+        if (photo && !photo.published) {
+          card.classList.add('pairing-mode'); // Reuse cursor style
+        } else {
+          card.style.opacity = '0.5'; // Dim already published photos
+        }
+      });
+      
+      updatePublishUI();
+    }
+
+    function exitPublishMode() {
+      isPublishMode = false;
+      selectedForPublish = [];
+      publishModeBtn.classList.remove('active');
+      publishBanner.classList.remove('active');
+      
+      // Remove selection and publish-mode classes
+      [...photoLayer.children].forEach(card => {
+        card.classList.remove('pairing-mode', 'selected-for-publish');
+        card.style.opacity = '';
+        const badge = card.querySelector('.publish-selection-badge');
+        if (badge) badge.remove();
+      });
+    }
+
+    async function confirmPublishing() {
+      console.log('confirmPublishing called, selected:', selectedForPublish);
+      
+      if (selectedForPublish.length < 1) {
+        alert('No photos selected!');
+        return;
+      }
+      
+      // Collect all photos to publish, including paired ones
+      const photosToPublish = new Set(selectedForPublish);
+      let hasPairedPhotos = false;
+      
+      // Check for paired photos that aren't selected
+      for (const photoId of selectedForPublish) {
+        const photo = photosData.find(p => p.id === photoId);
+        if (photo && photo.group) {
+          const pairedPhotos = photosData.filter(p => p.group === photo.group && !p.published);
+          for (const paired of pairedPhotos) {
+            if (!photosToPublish.has(paired.id)) {
+              photosToPublish.add(paired.id);
+              hasPairedPhotos = true;
+            }
+          }
+        }
+      }
+      
+      // Warn user about paired photos
+      if (hasPairedPhotos) {
+        const confirmed = confirm(`Some selected photos are paired with others. All paired memories will be published together (${photosToPublish.size} photos total). Continue?`);
+        if (!confirmed) return;
+      }
+      
+      let successCount = 0;
+      
+      // Publish all photos (selected + their pairs)
+      for (const photoId of photosToPublish) {
+        try {
+          await updatePhotoPublishStatus(photoId, true);
+          
+          // Update local data
+          const photo = photosData.find(p => p.id === photoId);
+          if (photo) {
+            photo.published = true;
+            successCount++;
+          }
+          
+          // Update card data attribute
+          const card = photoLayer.querySelector(`[data-id="${photoId}"]`);
+          if (card) {
+            card.dataset.published = 'true';
+          }
+        } catch (err) {
+          console.error('Failed to publish photo:', err);
+        }
+      }
+      
+      if (successCount > 0) {
+        alert(`Successfully published ${successCount} photo(s)!`);
+      }
+      
+      exitPublishMode();
+    }
+
+    publishModeBtn.addEventListener('click', enterPublishMode);
+    cancelPublishBtn.addEventListener('click', exitPublishMode);
+    confirmPublishBtn.addEventListener('click', confirmPublishing);
+
     // ============ PUBLISH TOGGLE ============
 
     const publishBtn = document.getElementById('publish-btn');
@@ -1653,11 +1951,29 @@
       
       const newStatus = !photo.published;
       
+      // Check if this photo is part of a group and we're publishing
+      let photosToUpdate = [photo];
+      if (newStatus && photo.group) {
+        const groupPhotos = photosData.filter(p => p.group === photo.group && !p.published);
+        if (groupPhotos.length > 1) {
+          const confirmed = confirm(`This memory is paired with ${groupPhotos.length - 1} other photo(s). Publishing will also publish all paired memories. Continue?`);
+          if (!confirmed) return;
+          photosToUpdate = groupPhotos;
+        }
+      }
+      
       try {
-        await updatePhotoPublishStatus(currentPhotoId, newStatus);
-        
-        // Update local data
-        photo.published = newStatus;
+        // Update all photos (single or group)
+        for (const p of photosToUpdate) {
+          await updatePhotoPublishStatus(p.id, newStatus);
+          p.published = newStatus;
+          
+          // Update card data attribute
+          const card = photoLayer.querySelector(`[data-id="${p.id}"]`);
+          if (card) {
+            card.dataset.published = newStatus ? 'true' : 'false';
+          }
+        }
         
         // Update modal UI
         const privacyBadge = document.getElementById('privacy-badge');
@@ -1666,12 +1982,6 @@
         
         publishBtn.classList.toggle('published', newStatus);
         publishBtn.textContent = newStatus ? '🔒 Make Private' : '🌐 Publish';
-        
-        // Update card data attribute
-        const card = photoLayer.querySelector(`[data-id="${currentPhotoId}"]`);
-        if (card) {
-          card.dataset.published = newStatus ? 'true' : 'false';
-        }
         
       } catch (err) {
         console.error('Failed to toggle publish status:', err);
@@ -1706,6 +2016,7 @@
         document.getElementById('upload-label').style.display = 'none';
         document.getElementById('photo-input').style.display = 'none';
         document.getElementById('pair-mode-btn').style.display = 'none';
+        document.getElementById('publish-mode-btn').style.display = 'none';
       }
       
       // Load photos from server
