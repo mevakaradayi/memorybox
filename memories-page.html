@@ -121,7 +121,7 @@
       cursor: pointer;
       opacity: 0;
       transform: scale(0.3) rotate(0deg);
-      transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, left 0.5s ease, top 0.5s ease, z-index 0s;
+      transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, left 0.25s ease, top 0.25s ease, z-index 0s;
       border: 1px solid var(--dusty-pink-light);
     }
 
@@ -843,12 +843,11 @@
         // Sync card states with data before showing
         syncCardsWithData();
         
+        // All photos burst out at once (no stagger)
         cards.forEach((card, index) => {
           const angle = +card.dataset.angle;
           const radius = +card.dataset.radius;
-          setTimeout(() => {
-            placeCard(card, angle, radius, true);
-          }, index * 80);
+          placeCard(card, angle, radius, true);
         });
       } else {
         cards.forEach(card => card.classList.remove('visible'));
@@ -897,8 +896,8 @@
       const totalCards = photoLayer.children.length;
       
       // Calculate grid dimensions with overlap - looser spacing
-      const overlapX = 40; // How much cards overlap horizontally
-      const overlapY = 15; // How much cards overlap vertically - more space between rows
+      const overlapX = 10; // How much cards overlap horizontally (less overlap = more spread)
+      const overlapY = -20; // Negative = more vertical space between rows
       const effectiveCardWidth = cardWidth - overlapX;
       const effectiveCardHeight = cardHeight - overlapY;
       
