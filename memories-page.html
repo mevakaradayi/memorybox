@@ -876,11 +876,11 @@
       openBoxBtn.classList.toggle("disabled", isBoxOpen || count === 0);
       closeBoxBtn.classList.toggle("disabled", !isBoxOpen);
       
-      // Show pair button only when box is open with 2+ photos (and viewing own box)
+      // Show pair button only when there are 2+ photos (and viewing own box)
       if (isOwnBox) {
         const pairBtn = document.getElementById('pair-mode-btn');
         if (pairBtn) {
-          pairBtn.classList.toggle("disabled", !isBoxOpen || count < 2);
+          pairBtn.classList.toggle("disabled", count < 2);
         }
       }
     }
@@ -1382,11 +1382,26 @@
     const cancelPairBtn = document.getElementById('cancel-pair-btn');
 
     function enterPairingMode() {
-      if (!isBoxOpen || photosData.length < 2) {
-        alert('Open your box first and ensure you have at least 2 photos to pair!');
+      if (photosData.length < 2) {
+        alert('You need at least 2 photos to pair memories!');
         return;
       }
       
+      // If box is closed, open it first then enter pairing mode
+      if (!isBoxOpen) {
+        isBoxOpen = true;
+        updateUI();
+        // Wait for photos to animate out before entering pairing mode
+        setTimeout(() => {
+          activatePairingMode();
+        }, 400);
+        return;
+      }
+      
+      activatePairingMode();
+    }
+    
+    function activatePairingMode() {
       isPairingMode = true;
       selectedForPairing = [];
       pairModeBtn.classList.add('active');
