@@ -62,8 +62,8 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 160px;
-      height: 160px;
+      width: 220px;
+      height: 220px;
       filter: drop-shadow(0 12px 30px rgba(114, 47, 55, 0.25));
       pointer-events: auto;
       cursor: pointer;
@@ -83,77 +83,11 @@
       cursor: default;
     }
 
-    /* 3D Disco Ball Styles */
-    .disco-ball-3d {
-      width: 160px;
-      height: 160px;
-      position: relative;
-      transform-style: preserve-3d;
-    }
-
-    .disco-ball-3d .tile {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      background: linear-gradient(135deg, 
-        #fff 0%, 
-        #e8e8e8 20%,
-        #c0c0c0 40%, 
-        #a0a0a0 60%, 
-        #c0c0c0 80%, 
-        #fff 100%);
-      border: 0.3px solid rgba(80, 80, 80, 0.4);
-      backface-visibility: visible;
-      transform-style: preserve-3d;
-      border-radius: 1px;
-    }
-
-    .disco-ball-3d .tile::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(45deg, 
-        transparent 0%, 
-        rgba(255, 255, 255, 0.9) 50%, 
-        transparent 100%);
-      opacity: 0;
-      animation: tile-glint 3s ease-in-out infinite;
-      animation-delay: var(--glint-delay, 0s);
-    }
-
-    @keyframes tile-glint {
-      0%, 100% { opacity: 0; }
-      50% { opacity: 0.7; }
-    }
-
-    /* 3D Disco ball spinning animation */
-    @keyframes disco-spin-3d {
-      0% { 
-        transform: translate(-50%, -50%) rotateY(0deg);
-      }
-      100% { 
-        transform: translate(-50%, -50%) rotateY(360deg);
-      }
-    }
-
-    .memory-box-image.spinning .disco-ball-3d {
-      animation: disco-ball-rotate 4s linear infinite;
-    }
-
-    @keyframes disco-ball-rotate {
-      from { transform: rotateY(0deg); }
-      to { transform: rotateY(360deg); }
-    }
-
-    .memory-box-image.spinning {
-      filter: drop-shadow(0 12px 30px rgba(114, 47, 55, 0.25))
-              drop-shadow(0 0 50px rgba(255, 255, 255, 0.5))
-              drop-shadow(0 0 80px rgba(212, 165, 165, 0.4));
-    }
-
-    .memory-box-image.spinning .tile {
-      animation: tile-shimmer 2s ease-in-out infinite;
-      animation-delay: var(--shimmer-delay, 0s);
+    /* Box Image Styles */
+    .memory-box-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     @keyframes tile-shimmer {
@@ -471,6 +405,19 @@
       transform: scale(1.6) rotate(0deg); 
     }
 
+    /* Paired Photo Indicator */
+    .photo-card.paired {
+      box-shadow: 
+        0 4px 12px rgba(114, 47, 55, 0.15),
+        0 1px 3px rgba(0, 0, 0, 0.08),
+        0 0 0 2px rgba(212, 165, 165, 0.6);
+    }
+
+
+    .photo-card.paired.visible:hover {
+      box-shadow: 0 20px 40px rgba(114, 47, 55, 0.3), 0 0 15px rgba(212, 165, 165, 0.5);
+    }
+
     /* Pairing Mode Styles */
     .photo-card.pairing-mode {
       cursor: crosshair;
@@ -482,8 +429,8 @@
       box-shadow: 0 0 20px rgba(114, 47, 55, 0.4), 0 12px 22px rgba(0, 0, 0, 0.15);
     }
 
-    .photo-card.selected-for-pair::after {
-      content: '♥';
+    /* Selection badge for pairing mode */
+    .photo-card .selection-badge {
       position: absolute;
       top: -10px;
       right: -10px;
@@ -497,6 +444,7 @@
       justify-content: center;
       font-size: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 10;
     }
 
     .pairing-mode-banner {
@@ -736,11 +684,11 @@
   <div class="scene">
 
     <div id="greeting" class="greeting">Hello, Friend ✨</div>
-    <a href="browse.html" class="browse-link">👥 Browse Others Memories</a>
+    <a href="browse.html" class="browse-link">Browse Others' Boxes</a>
     <button id="logout-btn" class="logout-btn">Logout</button>
 
     <div id="box-image" class="memory-box-image">
-      <div class="disco-ball-3d" id="disco-ball-3d"></div>
+      <img id="box-img" src="Images/box_close.png" alt="Memory Box">
     </div>
 
     <div id="empty-state" class="empty-state-bubble">
@@ -782,58 +730,14 @@
       <label for="photo-input" class="upload-button" id="upload-label">+ Add memories</label>
       <input id="photo-input" type="file" accept="image/*" multiple>
 
-      <button id="open-box" class="open-button">See Your Memories</button>
-      <button id="close-box" class="close-button disabled">Hide Your Memories</button>
+      <button id="open-box" class="open-button">Open Your Box</button>
+      <button id="close-box" class="close-button disabled">Close Your Box</button>
 
       <button id="pair-mode-btn" class="pair-btn">💕 Pair Memories</button>
     </div>
   </div>
 
   <script>
-    // Generate 3D Disco Ball
-    function generateDiscoBall(containerId) {
-      const discoBall = document.getElementById(containerId);
-      if (!discoBall) return;
-      
-      const radius = 80;
-      const rows = 10;
-      
-      for (let i = 0; i < rows; i++) {
-        const phi = (Math.PI / rows) * i;
-        const y = radius * Math.cos(phi);
-        const ringRadius = radius * Math.sin(phi);
-        const tilesInRing = Math.max(1, Math.floor(16 * Math.sin(phi)));
-        
-        for (let j = 0; j < tilesInRing; j++) {
-          const theta = (2 * Math.PI / tilesInRing) * j;
-          const x = ringRadius * Math.cos(theta);
-          const z = ringRadius * Math.sin(theta);
-          
-          const tile = document.createElement('div');
-          tile.className = 'tile';
-          
-          const rotateY = (theta * 180 / Math.PI);
-          const rotateX = (90 - phi * 180 / Math.PI);
-          
-          tile.style.transform = `
-            translate3d(${x + radius - 7}px, ${y + radius - 7}px, ${z}px)
-            rotateY(${rotateY}deg)
-            rotateX(${rotateX}deg)
-          `;
-          
-          tile.style.setProperty('--shimmer-delay', `${Math.random() * 2}s`);
-          tile.style.setProperty('--glint-delay', `${Math.random() * 3}s`);
-          
-          discoBall.appendChild(tile);
-        }
-      }
-    }
-    
-    // Initialize disco ball on load
-    document.addEventListener('DOMContentLoaded', () => {
-      generateDiscoBall('disco-ball-3d');
-    });
-
     const API = 'http://localhost:3000/api';
     const SESSION_KEY = 'memoryBox_session';
     
@@ -930,31 +834,23 @@
   
       boxImage.classList.toggle("box-open", isBoxOpen);
       photoLayer.classList.toggle("photos-hidden", !isBoxOpen);
+      
+      // Swap box image based on state
+      document.getElementById('box-img').src = isBoxOpen ? 'Images/box_open.png' : 'Images/box_close.png';
   
       const cards = [...photoLayer.children];
       if (isBoxOpen) {
         // Sync card states with data before showing
         syncCardsWithData();
         
-        // Start spinning the disco ball
-        boxImage.classList.add('spinning');
-        
         cards.forEach((card, index) => {
           const angle = +card.dataset.angle;
           const radius = +card.dataset.radius;
           setTimeout(() => {
             placeCard(card, angle, radius, true);
-            
-            // Stop spinning after the last photo appears
-            if (index === cards.length - 1) {
-              setTimeout(() => {
-                boxImage.classList.remove('spinning');
-              }, 600);
-            }
           }, index * 80);
         });
       } else {
-        boxImage.classList.remove('spinning');
         cards.forEach(card => card.classList.remove('visible'));
       }
   
@@ -1118,10 +1014,20 @@
         // Deselect
         selectedForPairing.splice(index, 1);
         card?.classList.remove('selected-for-pair');
+        // Remove selection badge
+        const badge = card?.querySelector('.selection-badge');
+        if (badge) badge.remove();
       } else {
         // Select (no limit)
         selectedForPairing.push(photoId);
         card?.classList.add('selected-for-pair');
+        // Add selection badge
+        if (card && !card.querySelector('.selection-badge')) {
+          const badge = document.createElement('span');
+          badge.className = 'selection-badge';
+          badge.textContent = '♥';
+          card.appendChild(badge);
+        }
       }
       
       updatePairingUI();
@@ -1411,9 +1317,11 @@
       pairModeBtn.classList.remove('active');
       pairingBanner.classList.remove('active');
       
-      // Remove selection and pairing-mode classes
+      // Remove selection and pairing-mode classes, and selection badges
       [...photoLayer.children].forEach(card => {
         card.classList.remove('pairing-mode', 'selected-for-pair');
+        const badge = card.querySelector('.selection-badge');
+        if (badge) badge.remove();
       });
     }
 
