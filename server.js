@@ -313,10 +313,19 @@ app.post('/api/auth/reset-password', (req, res) => {
 // ============ PHOTO ROUTES ============
 
 // Get photos for a user
+// If requesterId is provided and differs from userId, only return published photos
 app.get('/api/photos/:userId', (req, res) => {
   const data = getData();
   const userId = decodeURIComponent(req.params.userId);
-  const photos = data.photos[userId] || [];
+  const requesterId = req.query.requesterId ? decodeURIComponent(req.query.requesterId) : null;
+  
+  let photos = data.photos[userId] || [];
+  
+  // If someone else is viewing (not the owner), only show published photos
+  if (requesterId && requesterId !== userId) {
+    photos = photos.filter(p => p.published === true);
+  }
+  
   res.json(photos);
 });
 
@@ -336,6 +345,7 @@ app.post('/api/photos/:userId', (req, res) => {
     angle: req.body.angle,
     radius: req.body.radius,
     group: req.body.group || null,
+    published: false, // Photos are private by default
     createdAt: Date.now()
   };
   
@@ -344,7 +354,7 @@ app.post('/api/photos/:userId', (req, res) => {
   res.json(photo);
 });
 
-// Update a photo (caption or group)
+// Update a photo (caption, group, or published status)
 app.patch('/api/photos/:userId/:photoId', (req, res) => {
   console.log('PATCH photo:', { userId: req.params.userId, photoId: req.params.photoId, body: req.body });
   
@@ -358,7 +368,8 @@ app.patch('/api/photos/:userId/:photoId', (req, res) => {
   if (photo) {
     if (req.body.caption !== undefined) photo.caption = req.body.caption;
     if (req.body.group !== undefined) photo.group = req.body.group;
-    console.log('Updated photo group to:', photo.group);
+    if (req.body.published !== undefined) photo.published = req.body.published;
+    console.log('Updated photo group to:', photo.group, 'published:', photo.published);
     saveData(data);
     res.json(photo);
   } else {
@@ -391,15 +402,22 @@ app.delete('/api/photos/:userId', (req, res) => {
 // ============ USER ROUTES ============
 
 // Get all users (for browsing boxes)
+// Only count published photos for display to other users
 app.get('/api/users', (req, res) => {
   const data = getData();
-  const users = Object.entries(data.users).map(([email, user]) => ({
-    id: email,
-    name: user.name,
-    username: user.username || null,
-    profilePhoto: user.profilePhoto || null,
-    photoCount: (data.photos[email] || []).length
-  }));
+  const users = Object.entries(data.users).map(([email, user]) => {
+    const photos = data.photos[email] || [];
+    // Only count published photos for the public photo count
+    const publishedCount = photos.filter(p => p.published === true).length;
+    
+    return {
+      id: email,
+      name: user.name,
+      username: user.username || null,
+      profilePhoto: user.profilePhoto || null,
+      photoCount: publishedCount // Only show published photo count
+    };
+  });
   res.json(users);
 });
 

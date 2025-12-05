@@ -463,10 +463,14 @@
       boxTitle.textContent = `${ownerName}'s Memory Box`;
       document.title = `${ownerName}'s Memory Box`;
       
-      // Fetch photos
+      // Fetch photos - pass current user as requesterId to only get published photos
       let photosData = [];
+      const session = JSON.parse(localStorage.getItem('memoryBox_session') || 'null');
+      const currentUserId = session?.email;
+      
       try {
-        const photosRes = await fetch(`${API}/photos/${encodeURIComponent(userId)}`);
+        // Pass requesterId so server knows this is another user viewing (will filter to published only)
+        const photosRes = await fetch(`${API}/photos/${encodeURIComponent(userId)}?requesterId=${encodeURIComponent(currentUserId || '')}`);
         photosData = await photosRes.json();
       } catch (e) {
         console.error('Could not fetch photos:', e);

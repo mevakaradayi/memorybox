@@ -700,6 +700,56 @@
     }
 
     .hidden { display: none; }
+
+    /* Publish button in modal */
+    .modal-btn.publish-btn {
+      background: transparent;
+      border: 1px solid #4CAF50;
+      color: #4CAF50;
+    }
+
+    .modal-btn.publish-btn:hover {
+      background: rgba(76, 175, 80, 0.1);
+    }
+
+    .modal-btn.publish-btn.published {
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      border: none;
+      color: white;
+    }
+
+    .modal-btn.publish-btn.published:hover {
+      background: linear-gradient(135deg, #43A047, #1B5E20);
+    }
+
+    /* Published badge in modal */
+    .published-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+      font-family: 'Cormorant Garamond', serif;
+      letter-spacing: 0.5px;
+    }
+
+    .private-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--text-muted);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+      font-family: 'Cormorant Garamond', serif;
+      letter-spacing: 0.5px;
+    }
   </style>
 </head>
 <body>
@@ -737,11 +787,13 @@
         </div>
         <div class="modal-caption-area">
           <div id="paired-badge" class="paired-badge" style="display: none;">💕 Paired Memories</div>
+          <div id="privacy-badge" class="private-badge" style="display: none;">🔒 Private</div>
           <p id="modal-caption" class="modal-caption empty">Click "Add Caption" to add a memory</p>
           <input type="text" id="caption-input" class="caption-input" placeholder="Write your caption...">
           <div class="modal-buttons">
             <button id="edit-caption-btn" class="modal-btn edit-btn">✏️ Add Caption</button>
             <button id="save-caption-btn" class="modal-btn save-btn">💾 Save</button>
+            <button id="publish-btn" class="modal-btn publish-btn">🌐 Publish</button>
             <button id="unpair-btn" class="modal-btn edit-btn" style="display: none;">💔 Unpair</button>
             <button id="delete-photo-btn" class="modal-btn delete-btn">🗑️ Delete</button>
           </div>
@@ -796,7 +848,9 @@
     
     async function loadPhotosFromServer() {
       try {
-        const res = await fetch(`${API}/photos/${encodeURIComponent(viewingUserId)}`);
+        // Pass currentUserId as requesterId - if viewing own box, will see all photos
+        // If viewing someone else's box, will only see published photos
+        const res = await fetch(`${API}/photos/${encodeURIComponent(viewingUserId)}?requesterId=${encodeURIComponent(currentUserId)}`);
         return await res.json();
       } catch (err) {
         console.error('Failed to load photos:', err);
@@ -847,6 +901,22 @@
         throw new Error(result.error || 'Failed to update');
       }
       console.log('Photo group updated:', result);
+      return result;
+    }
+
+    async function updatePhotoPublishStatus(photoId, published) {
+      console.log('Updating photo publish status:', { photoId, published, userId: currentUserId });
+      const res = await fetch(`${API}/photos/${encodeURIComponent(currentUserId)}/${photoId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ published })
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        console.error('Failed to update photo publish status:', result);
+        throw new Error(result.error || 'Failed to update');
+      }
+      console.log('Photo publish status updated:', result);
       return result;
     }
   
@@ -1080,7 +1150,7 @@
     }
   
     function createCard(photo, index) {
-      const { id, imageData, angle, radius, caption, group } = photo;
+      const { id, imageData, angle, radius, caption, group, published } = photo;
 
       const card = document.createElement("div");
       card.className = `photo-card tilt-${(index % 6) + 1}`;
@@ -1088,9 +1158,11 @@
       card.dataset.angle = angle;
       card.dataset.radius = radius;
       card.dataset.id = id;
+      card.dataset.published = published ? 'true' : 'false';
       if (group) card.dataset.group = group;
 
       const captionClass = caption ? 'caption-preview' : 'caption-preview empty';
+      
       card.innerHTML = `
         <img src="${imageData}">
         <div class="${captionClass}">${caption || ''}</div>
@@ -1290,6 +1362,26 @@
           : `💕 ${currentGroupPhotos.length} Memories Paired`;
       } else {
         pairedBadge.style.display = 'none';
+      }
+      
+      // Show privacy badge and publish button (only for own box)
+      const privacyBadge = document.getElementById('privacy-badge');
+      const publishBtn = document.getElementById('publish-btn');
+      
+      if (isOwnBox) {
+        // Update privacy badge
+        const isPublished = photo.published === true;
+        privacyBadge.style.display = 'inline-flex';
+        privacyBadge.className = isPublished ? 'published-badge' : 'private-badge';
+        privacyBadge.innerHTML = isPublished ? '🌐 Published' : '🔒 Private';
+        
+        // Update publish button
+        publishBtn.style.display = '';
+        publishBtn.classList.toggle('published', isPublished);
+        publishBtn.textContent = isPublished ? '🔒 Make Private' : '🌐 Publish';
+      } else {
+        privacyBadge.style.display = 'none';
+        publishBtn.style.display = 'none';
       }
       
       // Show unpair button for paired photos (only for own box)
@@ -1548,6 +1640,46 @@
     confirmPairBtn.addEventListener('click', confirmPairing);
     unpairBtn.addEventListener('click', unpairPhotos);
     deletePhotoBtn.addEventListener('click', deletePhoto);
+
+    // ============ PUBLISH TOGGLE ============
+
+    const publishBtn = document.getElementById('publish-btn');
+
+    async function togglePublishStatus() {
+      if (!currentPhotoId) return;
+      
+      const photo = photosData.find(p => p.id === currentPhotoId);
+      if (!photo) return;
+      
+      const newStatus = !photo.published;
+      
+      try {
+        await updatePhotoPublishStatus(currentPhotoId, newStatus);
+        
+        // Update local data
+        photo.published = newStatus;
+        
+        // Update modal UI
+        const privacyBadge = document.getElementById('privacy-badge');
+        privacyBadge.className = newStatus ? 'published-badge' : 'private-badge';
+        privacyBadge.innerHTML = newStatus ? '🌐 Published' : '🔒 Private';
+        
+        publishBtn.classList.toggle('published', newStatus);
+        publishBtn.textContent = newStatus ? '🔒 Make Private' : '🌐 Publish';
+        
+        // Update card data attribute
+        const card = photoLayer.querySelector(`[data-id="${currentPhotoId}"]`);
+        if (card) {
+          card.dataset.published = newStatus ? 'true' : 'false';
+        }
+        
+      } catch (err) {
+        console.error('Failed to toggle publish status:', err);
+        alert('Failed to update publish status. Please try again.');
+      }
+    }
+
+    publishBtn.addEventListener('click', togglePublishStatus);
 
     // ============ LOGOUT ============
 
