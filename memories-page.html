@@ -860,6 +860,94 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       z-index: 10;
     }
+
+    /* Custom Toast Notification */
+    .custom-toast-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(61, 44, 41, 0.4);
+      backdrop-filter: blur(3px);
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .custom-toast-backdrop.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .custom-toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: var(--cream-light);
+      border: 2px solid var(--dusty-pink);
+      border-radius: 16px;
+      padding: 32px 48px;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.15rem;
+      color: var(--burgundy);
+      box-shadow: 
+        0 20px 60px rgba(114, 47, 55, 0.3),
+        0 0 0 1px rgba(212, 165, 165, 0.3);
+      z-index: 2001;
+      text-align: center;
+      max-width: 400px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .custom-toast.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .custom-toast::before {
+      content: "❦";
+      display: block;
+      font-size: 1.5rem;
+      color: var(--dusty-pink);
+      margin-bottom: 12px;
+    }
+
+    .custom-toast-message {
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .custom-toast-btn {
+      background: var(--cream-light);
+      border: 1px solid var(--dusty-pink);
+      color: var(--burgundy);
+      padding: 10px 28px;
+      border-radius: 6px;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .custom-toast-btn:hover {
+      background: rgba(114, 47, 55, 0.05);
+      border-color: var(--burgundy);
+    }
+
+    .custom-toast.success::before {
+      content: "✨";
+    }
+
+    .custom-toast.error::before {
+      content: "💔";
+    }
+
+    .custom-toast.info::before {
+      content: "💌";
+    }
   </style>
 </head>
 <body>
@@ -886,6 +974,13 @@
       <span id="selection-count" class="selection-count">0 selected</span>
       <button id="confirm-pair-btn" class="confirm-pair-btn" disabled>Pair Memories</button>
       <button id="cancel-pair-btn" class="cancel-pair-btn">Cancel</button>
+    </div>
+
+    <!-- Custom Toast Notification -->
+    <div id="toast-backdrop" class="custom-toast-backdrop"></div>
+    <div id="custom-toast" class="custom-toast">
+      <div id="toast-message" class="custom-toast-message"></div>
+      <button id="toast-btn" class="custom-toast-btn">OK</button>
     </div>
 
     <!-- Publish Mode Banner -->
@@ -964,7 +1059,38 @@
     let selectedForPairing = []; // Photo IDs selected for pairing
     let isPublishMode = false;
     let selectedForPublish = []; // Photo IDs selected for publishing
-  
+
+    // ============ CUSTOM TOAST NOTIFICATION ============
+    
+    const toastBackdrop = document.getElementById('toast-backdrop');
+    const customToast = document.getElementById('custom-toast');
+    const toastMessage = document.getElementById('toast-message');
+    const toastBtn = document.getElementById('toast-btn');
+
+    function showToast(message, type = 'info') {
+      // Set message
+      toastMessage.textContent = message;
+      
+      // Set type class for different icons
+      customToast.className = 'custom-toast';
+      if (type) customToast.classList.add(type);
+      
+      // Show toast
+      toastBackdrop.classList.add('visible');
+      customToast.classList.add('visible');
+    }
+
+    function hideToast() {
+      toastBackdrop.classList.remove('visible');
+      customToast.classList.remove('visible');
+    }
+
+    // Close toast on button click
+    toastBtn.addEventListener('click', hideToast);
+    
+    // Close toast on backdrop click
+    toastBackdrop.addEventListener('click', hideToast);
+
     // ============ API FUNCTIONS ============
     
     async function loadPhotosFromServer() {
@@ -1621,7 +1747,7 @@
 
     function enterPairingMode() {
       if (photosData.length < 2) {
-        alert('You need at least 2 photos to pair memories!');
+        showToast('You need at least 2 photos to pair memories!', 'info');
         return;
       }
       
@@ -1689,7 +1815,7 @@
           }
         } catch (err) {
           console.error('Failed to pair photo:', err);
-          alert('Failed to pair photos. Please try again.');
+          showToast('Failed to pair photos. Please try again.', 'error');
         }
       }
       
@@ -1820,7 +1946,7 @@
       const unpublishedCount = photosData.filter(p => !p.published).length;
       
       if (unpublishedCount === 0) {
-        alert('All your photos are already published!');
+        showToast('All your photos are already published!', 'info');
         return;
       }
       
@@ -1877,7 +2003,7 @@
       console.log('confirmPublishing called, selected:', selectedForPublish);
       
       if (selectedForPublish.length < 1) {
-        alert('No photos selected!');
+        showToast('No photos selected!', 'info');
         return;
       }
       
@@ -1930,7 +2056,7 @@
       }
       
       if (successCount > 0) {
-        alert(`Successfully published ${successCount} photo(s)!`);
+        showToast(`Successfully published ${successCount} photo(s)!`, 'success');
       }
       
       exitPublishMode();
@@ -1986,7 +2112,7 @@
         
       } catch (err) {
         console.error('Failed to toggle publish status:', err);
-        alert('Failed to update publish status. Please try again.');
+        showToast('Failed to update publish status. Please try again.', 'error');
       }
     }
 
