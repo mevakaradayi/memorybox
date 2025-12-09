@@ -17,8 +17,8 @@ const resetCodes = new Map();
 let emailTransporter = null;
 
 const EMAIL_CONFIG = {
-  user: 'mevakaradayi@gmail.com',
-  pass: 'zhgl zeea ybck fsvi'
+  user: 'appmemorybox@gmail.com',
+  pass: 'rwqx shfr murc nfem'
 };
 
 async function setupEmailTransporter() {
