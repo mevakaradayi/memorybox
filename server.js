@@ -5,6 +5,12 @@ const nodemailer = require('nodemailer');
 const app = express();
 
 app.use(express.json({ limit: '50mb' }));
+
+// Redirect root to login page
+app.get('/', (req, res) => {
+  res.redirect('/login.html');
+});
+
 app.use(express.static(__dirname)); // Serve HTML, Images, etc.
 
 const DATA_FILE = path.join(__dirname, 'data.json');
