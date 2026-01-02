@@ -17,8 +17,8 @@ const resetCodes = new Map();
 let emailTransporter = null;
 
 const EMAIL_CONFIG = {
-  user: 'appmemorybox@gmail.com',
-  pass: 'rwqx shfr murc nfem'
+  user: process.env.EMAIL_USER || 'appmemorybox@gmail.com',
+  pass: process.env.EMAIL_PASS || ''
 };
 
 async function setupEmailTransporter() {
@@ -513,7 +513,7 @@ app.delete('/api/users/:userId', (req, res) => {
   res.json({ success: true });
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✨ Memory Box server running at http://localhost:${PORT}`);
   console.log(`   Open http://localhost:${PORT}/login.html to start`);
